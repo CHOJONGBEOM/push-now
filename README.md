@@ -244,7 +244,7 @@ push_now/
 - **프로젝트 링크**: https://push-now.vercel.app/?_vercel_share=5PPYhY1YkBUIDLZ5sKuCeoNTj6wtlu7W
 
 <div align="center">
-  <p>Made with ❤️ by 전서연님, 이일섭님, 변성윤님  Team</p>
+  <p> Special Thanks ❤️ 도움 주신 전서연님, 이일섭님, 변성윤님께 </p>
   <p>
     <a href="#-pushnow">맨 위로 ⬆️</a>
   </p>
