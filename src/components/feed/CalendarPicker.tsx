@@ -198,7 +198,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
             {isExpanded && (
                 <div className="border-t border-gray-100 p-4">
                     {/* 월 네비게이션 */}
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3">
                         <button
                             onClick={goToPrevMonth}
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -208,20 +208,20 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
                             </svg>
                         </button>
                         <div className="flex items-center gap-2">
-                            <span className="text-lg font-bold text-gray-900">
+                            <span className="text-base font-bold text-gray-900">
                                 {currentMonth.year}년 {monthNames[currentMonth.month]}
                             </span>
                             <button
                                 onClick={goToToday}
-                                className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded-lg hover:bg-blue-50"
+                                className="text-xs text-blue-600 hover:text-blue-700 px-2 py-0.5 rounded hover:bg-blue-50"
                             >
                                 오늘
                             </button>
                             <button
                                 onClick={handleMonthToggle}
-                                className="text-xs text-gray-600 hover:text-gray-800 px-2 py-1 rounded-lg hover:bg-gray-100 border border-gray-200"
+                                className="text-xs text-gray-600 hover:text-gray-800 px-2 py-0.5 rounded hover:bg-gray-100 border border-gray-200"
                             >
-                                {currentMonthDates.every(d => selectedDates.includes(d)) ? '월 해제' : '월 전체'}
+                                {currentMonthDates.every(d => selectedDates.includes(d)) ? '해제' : '전체'}
                             </button>
                         </div>
                         <button
@@ -235,11 +235,11 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
                     </div>
 
                     {/* 요일 헤더 */}
-                    <div className="grid grid-cols-7 gap-1 mb-2">
+                    <div className="grid grid-cols-7 gap-1 mb-1">
                         {dayNames.map((day, i) => (
                             <div
                                 key={day}
-                                className={`text-center text-xs font-medium py-2 ${
+                                className={`text-center text-xs font-medium py-1.5 ${
                                     i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400'
                                 }`}
                             >
@@ -266,24 +266,24 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
                                     onClick={() => isCurrentMonth && handleDateClick(dateStr)}
                                     disabled={!isCurrentMonth}
                                     className={`
-                                        relative aspect-square rounded-lg text-sm font-medium
-                                        flex flex-col items-center justify-center gap-0.5
+                                        relative h-10 rounded-lg text-sm font-medium
+                                        flex flex-col items-center justify-center
                                         transition-all
                                         ${!isCurrentMonth ? 'text-gray-300 cursor-default' : 'cursor-pointer'}
                                         ${isCurrentMonth && !isSelected ? getHeatmapColor(count) : ''}
-                                        ${isSelected ? 'bg-gradient-to-br from-violet-500 to-purple-600 text-white ring-2 ring-purple-400 ring-offset-1 shadow-md' : ''}
+                                        ${isSelected ? 'bg-gradient-to-br from-violet-500 to-purple-600 text-white ring-2 ring-purple-400 shadow-sm' : ''}
                                         ${isToday && !isSelected ? 'ring-2 ring-violet-400' : ''}
                                         ${isCurrentMonth && !isSelected && isHoliday ? 'text-red-600' : ''}
                                         ${isCurrentMonth && !isSelected && dayOfWeek === 6 && !isHoliday ? 'text-blue-600' : ''}
-                                        ${isCurrentMonth && count > 0 && !isSelected ? 'hover:ring-2 hover:ring-purple-300' : ''}
+                                        ${isCurrentMonth && count > 0 && !isSelected ? 'hover:ring-1 hover:ring-purple-300' : ''}
                                     `}
                                     title={holiday?.name || ecommerceEvent?.name || undefined}
                                 >
                                     <span>{date.getDate()}</span>
-                                    {/* 공휴일/이벤트 표시 */}
-                                    {isCurrentMonth && (holiday || ecommerceEvent) && (
-                                        <span className="text-[9px] leading-none">
-                                            {holiday ? '🔴' : ecommerceEvent?.emoji}
+                                    {/* 공휴일 이름 표시 */}
+                                    {isCurrentMonth && holiday && (
+                                        <span className={`text-[8px] leading-none truncate max-w-full px-0.5 ${isSelected ? 'text-white/80' : 'text-red-500'}`}>
+                                            {holiday.name.length > 4 ? holiday.name.slice(0, 3) + '..' : holiday.name}
                                         </span>
                                     )}
                                 </button>
@@ -291,54 +291,45 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
                         })}
                     </div>
 
-                    {/* 범례 */}
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                            <span className="w-3 h-3 rounded bg-gradient-to-br from-violet-500 to-purple-600" />
-                            선택됨
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <span className="w-3 h-3 rounded bg-blue-200" />
-                            메시지 있음
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <span className="w-3 h-3 rounded ring-2 ring-violet-400" />
-                            오늘
-                        </span>
-                        <span className="flex items-center gap-1">
-                            🔴 공휴일
-                        </span>
-                        <span className="flex items-center gap-1">
-                            🔥 이벤트
-                        </span>
-                    </div>
-
-                    {/* 선택된 날짜 태그 */}
-                    {selectedDates.length > 0 && selectedDates.length <= 10 && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                            <div className="flex flex-wrap gap-1.5">
-                                {selectedDates.map(dateStr => {
-                                    const date = new Date(dateStr);
-                                    return (
-                                        <span
-                                            key={dateStr}
-                                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-violet-100 to-purple-100 text-purple-700 rounded-lg text-xs font-medium"
-                                        >
-                                            {date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                                            <button
-                                                onClick={() => handleDateClick(dateStr)}
-                                                className="hover:bg-gray-200 rounded-full p-0.5"
+                    {/* 선택된 날짜 + 적용 버튼 */}
+                    <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                            {selectedDates.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                    {selectedDates.slice(0, 5).map(dateStr => {
+                                        const date = new Date(dateStr);
+                                        return (
+                                            <span
+                                                key={dateStr}
+                                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-violet-100 text-violet-700 rounded text-[10px] font-medium"
                                             >
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
+                                                {date.getMonth() + 1}/{date.getDate()}
+                                                <button
+                                                    onClick={() => handleDateClick(dateStr)}
+                                                    className="hover:text-violet-900"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
+                                    {selectedDates.length > 5 && (
+                                        <span className="text-[10px] text-gray-500 px-1">
+                                            +{selectedDates.length - 5}개
                                         </span>
-                                    );
-                                })}
-                            </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <span className="text-[10px] text-gray-400">날짜를 선택하세요</span>
+                            )}
                         </div>
-                    )}
+                        <button
+                            onClick={() => setIsExpanded(false)}
+                            className="px-3 py-1.5 bg-violet-600 text-white text-xs font-medium rounded-lg hover:bg-violet-700 transition-colors flex-shrink-0"
+                        >
+                            적용
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

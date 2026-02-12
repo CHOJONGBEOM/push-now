@@ -4,6 +4,22 @@ import { AppFilter } from '../components/timing/AppFilter';
 import { getAppIcon } from '../utils/appIcons';
 import { Navbar } from '../components/Navbar';
 
+// 12개 트리거별 구분되는 색상 매핑
+const TRIGGER_COLORS: Record<TriggerType, string> = {
+    urgency: 'bg-amber-400',        // 긴급성 - 호박색
+    loss_aversion: 'bg-red-400',    // 손실 회피 - 빨강
+    greed: 'bg-emerald-400',        // 이득 욕구 - 에메랄드
+    personalization: 'bg-violet-400', // 개인 맞춤 - 바이올렛
+    relevance: 'bg-teal-400',       // 상황 적합 - 틸
+    curiosity: 'bg-cyan-400',       // 궁금증 - 시안
+    social_proof: 'bg-rose-400',    // 인기 심리 - 로즈
+    novelty: 'bg-indigo-400',       // 새로움 - 인디고
+    fun: 'bg-yellow-400',           // 재미/성취 - 노랑
+    habit: 'bg-orange-400',         // 습관 유지 - 오렌지
+    reminder: 'bg-blue-400',        // 상기 - 파랑
+    none: 'bg-gray-300',            // 해당 없음 - 회색
+};
+
 const PERIOD_OPTIONS = [
     { value: 7, label: '7일' },
     { value: 14, label: '14일' },
@@ -201,19 +217,11 @@ export const Trends: React.FC = () => {
                                 <div className="h-8 rounded-xl overflow-hidden flex mb-4 bg-gray-100">
                                     {triggerDistribution.filter(d => d.trigger !== 'none').map(d => {
                                         const info = TRIGGER_INFO[d.trigger];
-                                        const colors: Record<string, string> = {
-                                            greed: 'bg-emerald-400',
-                                            scarcity: 'bg-amber-400',
-                                            personalization: 'bg-violet-400',
-                                            curiosity: 'bg-cyan-400',
-                                            social_proof: 'bg-rose-400',
-                                            novelty: 'bg-indigo-400',
-                                        };
                                         return (
                                             <button
                                                 key={d.trigger}
                                                 onClick={() => setSelectedTrigger(selectedTrigger === d.trigger ? null : d.trigger)}
-                                                className={`${colors[d.trigger] || 'bg-gray-300'} relative transition-all hover:opacity-80`}
+                                                className={`${TRIGGER_COLORS[d.trigger]} relative transition-all hover:opacity-80`}
                                                 style={{ width: `${d.percentage}%` }}
                                                 title={`${info.name}: ${d.percentage}%`}
                                             >
@@ -232,22 +240,13 @@ export const Trends: React.FC = () => {
                                     {triggerDistribution.filter(d => d.trigger !== 'none').slice(0, 6).map(d => {
                                         const info = TRIGGER_INFO[d.trigger];
                                         const isSelected = selectedTrigger === d.trigger;
-                                        const colors: Record<string, string> = {
-                                            greed: 'bg-emerald-400',
-                                            scarcity: 'bg-amber-400',
-                                            personalization: 'bg-violet-400',
-                                            curiosity: 'bg-cyan-400',
-                                            social_proof: 'bg-rose-400',
-                                            novelty: 'bg-indigo-400',
-                                        };
-                                        const colorClass = colors[d.trigger] || 'bg-gray-300';
                                         return (
                                             <button
                                                 key={d.trigger}
                                                 onClick={() => setSelectedTrigger(isSelected ? null : d.trigger)}
                                                 className={`
                                                     p-2 rounded-lg text-left transition-all text-sm
-                                                    ${colorClass} ${isSelected ? 'ring-2 ring-offset-2' : 'hover:opacity-80'}
+                                                    ${TRIGGER_COLORS[d.trigger]} ${isSelected ? 'ring-2 ring-offset-2' : 'hover:opacity-80'}
                                                 `}
                                             >
                                                 <div className="flex items-center justify-between">
@@ -280,7 +279,10 @@ export const Trends: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     {/* 앱별 전략 */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <h2 className="text-lg font-bold text-gray-900 mb-4">🏢 앱별 주력 전략</h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-bold text-gray-900">🏢 앱별 주력 전략</h2>
+                            <span className="text-xs text-gray-400">{appStrategies.length}개 앱</span>
+                        </div>
 
                         {isLoading ? (
                             <div className="space-y-3">
@@ -289,8 +291,8 @@ export const Trends: React.FC = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="space-y-3">
-                                {appStrategies.slice(0, 8).map(app => {
+                            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                                {appStrategies.map(app => {
                                     const primaryInfo = HOOK_TYPE_INFO[app.primaryStrategy];
                                     const secondaryInfo = app.strategies[1] ? HOOK_TYPE_INFO[app.strategies[1].type] : null;
                                     return (
@@ -345,11 +347,11 @@ export const Trends: React.FC = () => {
                         </div>
 
                         {/* 앱 선택 필터 */}
-                        <div className="flex flex-wrap gap-2 mb-4">
+                        <div className="flex flex-wrap gap-1.5 mb-4 max-h-24 overflow-y-auto">
                             <button
                                 onClick={() => setMessageAppFilter(null)}
                                 className={`
-                                    px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                                    px-2.5 py-1 rounded-lg text-xs font-medium transition-all
                                     ${messageAppFilter === null
                                         ? 'bg-gray-900 text-white'
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -358,12 +360,12 @@ export const Trends: React.FC = () => {
                             >
                                 전체
                             </button>
-                            {availableApps.slice(0, 6).map(appName => (
+                            {availableApps.map(appName => (
                                 <button
                                     key={appName}
                                     onClick={() => setMessageAppFilter(messageAppFilter === appName ? null : appName)}
                                     className={`
-                                        flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all
+                                        flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all
                                         ${messageAppFilter === appName
                                             ? 'bg-gray-900 text-white'
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -373,7 +375,7 @@ export const Trends: React.FC = () => {
                                     <img
                                         src={getAppIcon(appName)}
                                         alt={appName}
-                                        className="w-4 h-4 rounded"
+                                        className="w-3.5 h-3.5 rounded"
                                     />
                                     {appName}
                                 </button>

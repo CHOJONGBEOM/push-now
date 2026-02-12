@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../config/supabase';
 
-export type HookType = 'price' | 'urgency' | 'benefit' | 'newness' | 'social_proof' | 'personal' | 'curiosity' | 'other';
-export type TriggerType = 'scarcity' | 'greed' | 'personalization' | 'curiosity' | 'social_proof' | 'novelty' | 'none';
+export type HookType = 'price' | 'urgency' | 'benefit' | 'newness' | 'social_proof' | 'personal' | 'curiosity' | 'content' | 'event' | 'community' | 'other';
+export type TriggerType = 'urgency' | 'loss_aversion' | 'greed' | 'personalization' | 'relevance' | 'curiosity' | 'social_proof' | 'novelty' | 'fun' | 'habit' | 'reminder' | 'none';
 
 export const HOOK_TYPE_INFO: Record<HookType, { name: string; emoji: string; color: string; description: string }> = {
     price: {
@@ -42,10 +42,28 @@ export const HOOK_TYPE_INFO: Record<HookType, { name: string; emoji: string; col
         description: '베스트셀러, 리뷰 수, 랭킹 등 검증된 인기를 수치로 어필',
     },
     benefit: {
-        name: '일반 혜택',
+        name: '구매 혜택',
         emoji: '🎀',
         color: 'bg-green-100 text-green-700',
-        description: '무료배송, 사은품 등 숫자 없는 부가 혜택',
+        description: '무료배송, 사은품, 적립금 등 구매 시 부가 혜택',
+    },
+    content: {
+        name: '콘텐츠',
+        emoji: '📚',
+        color: 'bg-cyan-100 text-cyan-700',
+        description: '팁, 가이드, 영상, 학습 콘텐츠 등 정보성 콘텐츠',
+    },
+    event: {
+        name: '참여 이벤트',
+        emoji: '🎯',
+        color: 'bg-amber-100 text-amber-700',
+        description: '챌린지, 출석체크, 미션 등 참여형 이벤트 보상',
+    },
+    community: {
+        name: '커뮤니티',
+        emoji: '💬',
+        color: 'bg-indigo-100 text-indigo-700',
+        description: '좋아요, 댓글, 팔로우 등 SNS/커뮤니티 알림',
     },
     other: {
         name: '기타',
@@ -56,40 +74,65 @@ export const HOOK_TYPE_INFO: Record<HookType, { name: string; emoji: string; col
 };
 
 export const TRIGGER_INFO: Record<TriggerType, { name: string; emoji: string; description: string }> = {
+    urgency: {
+        name: '긴급성',
+        emoji: '⏰',
+        description: '지금 안 하면 늦는다 - 시간/수량 제한, 마감 임박',
+    },
+    loss_aversion: {
+        name: '손실 회피',
+        emoji: '😰',
+        description: '가진 걸 잃는다 - 포인트 소멸, 품절 직전, 혜택 사라짐',
+    },
     greed: {
         name: '이득 욕구',
         emoji: '🤑',
-        description: '절약하고 싶은 심리, 손해 보기 싫음',
-    },
-    scarcity: {
-        name: '희소성',
-        emoji: '⚡',
-        description: '시간/수량 한정으로 인한 조급함',
+        description: '득을 보고 싶다 - 할인, 무료, 절약',
     },
     personalization: {
-        name: '개인 관련성',
+        name: '개인 맞춤',
         emoji: '🎯',
-        description: '나만을 위한 맞춤 메시지라는 느낌',
+        description: '내 데이터 기반 - 찜한 상품, 최근 본 상품',
+    },
+    relevance: {
+        name: '상황 적합',
+        emoji: '🌧️',
+        description: '지금 맥락에 딱 - 비 오는 날, 출근길, 시즌',
     },
     curiosity: {
         name: '궁금증',
         emoji: '❓',
-        description: '숨겨진 정보를 알고 싶은 욕구',
+        description: '숨겨진 정보 - 비밀 혜택, 선물 도착',
     },
     social_proof: {
         name: '인기 심리',
         emoji: '👥',
-        description: '많이 팔리고 리뷰 좋으면 나도 사야 할 것 같은 심리',
+        description: '남들도 한다 - 판매 1위, 리뷰 1만개',
     },
     novelty: {
-        name: '새로움 추구',
+        name: '새로움',
         emoji: '🆕',
-        description: '새로운 것에 대한 호기심',
+        description: '새 것 보고 싶다 - 신상, NEW, 첫 출시',
+    },
+    fun: {
+        name: '재미/성취',
+        emoji: '🎮',
+        description: '보상, 즐거움 - 룰렛, 챌린지, 미션',
+    },
+    habit: {
+        name: '습관 유지',
+        emoji: '🔥',
+        description: '스트릭 끊기 싫다 - 연속 출석, 매일 학습',
+    },
+    reminder: {
+        name: '상기',
+        emoji: '💭',
+        description: '까먹은 걸 떠올림 - 장바구니, 아직 안 봤어요',
     },
     none: {
         name: '해당 없음',
         emoji: '➖',
-        description: '명확한 심리 트리거 없음',
+        description: '명확한 트리거 없음 - 시스템 알림',
     },
 };
 

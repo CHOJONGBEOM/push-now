@@ -15,7 +15,10 @@
       "mcp__plugin_supabase_supabase__get_project_url",
       "mcp__plugin_supabase_supabase__get_publishable_keys",
       "mcp__plugin_supabase_supabase__get_edge_function",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "mcp__plugin_supabase_supabase__list_edge_functions",
+      "mcp__plugin_supabase_supabase__list_extensions",
+      "Bash(npx supabase:*)"
     ]
   }
 }

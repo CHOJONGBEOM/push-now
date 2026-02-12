@@ -13,7 +13,7 @@
 // 로컬 아이콘 경로 생성
 const getLocalIconPath = (appName: string): string => {
     // 파일명에 사용할 수 없는 문자 처리
-    const safeName = appName.replace(/[\/\\:*?"<>|]/g, '_');
+    const safeName = appName.replace(/[\/\\:*?"<>|]/g, '');
     return `/icons/apps/${safeName}.png`;
 };
 

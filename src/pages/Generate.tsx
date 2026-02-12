@@ -28,18 +28,34 @@ interface AppCategory {
 const APP_CATEGORIES: AppCategory[] = [
     {
         id: 'fashion',
-        name: '패션/뷰티',
+        name: '패션',
         emoji: '👗',
-        description: '의류, 신발, 화장품, 액세서리',
-        apps: ['무신사', '29CM', '지그재그', '에이블리', 'W컨셉'],
+        description: '의류, 신발, 액세서리, 스트릿웨어',
+        apps: ['무신사', '29CM', '지그재그', '에이블리', 'LookPin', 'EQL', '4910'],
+        status: 'active',
+    },
+    {
+        id: 'beauty',
+        name: '뷰티',
+        emoji: '💄',
+        description: '화장품, 스킨케어, 시술',
+        apps: ['화해', '강남언니'],
         status: 'active',
     },
     {
         id: 'ecommerce',
-        name: '종합 이커머스',
+        name: '종합몰',
         emoji: '🛒',
         description: '식품, 생활용품, 가구, 인테리어',
-        apps: ['컬리', 'N+스토어', '오늘의집'],
+        apps: ['쿠팡', '컬리', 'N+스토어', '오늘의집'],
+        status: 'active',
+    },
+    {
+        id: 'resale',
+        name: '중고/리셀',
+        emoji: '♻️',
+        description: '중고거래, 리셀, 경매',
+        apps: ['번개장터'],
         status: 'active',
     },
     {
@@ -47,7 +63,7 @@ const APP_CATEGORIES: AppCategory[] = [
         name: '여행/숙박',
         emoji: '✈️',
         description: '항공, 호텔, 액티비티, 렌터카',
-        apps: ['마이리얼트립', '야놀자', '여기어때'],
+        apps: ['마이리얼트립', 'NOL(야놀자)', '여기어때', 'KLOOK', 'Trip.com', '트리플'],
         status: 'active',
     },
     {
@@ -55,40 +71,64 @@ const APP_CATEGORIES: AppCategory[] = [
         name: 'F&B/배달',
         emoji: '🍔',
         description: '음식 배달, 프랜차이즈, 카페',
-        apps: ['배달의민족', '요기요', '맥도날드', '스타벅스'],
-        status: 'collecting',
+        apps: ['배달의민족', '쿠팡이츠', '롯데잇츠'],
+        status: 'active',
     },
     {
         id: 'content',
-        name: '콘텐츠/엔터',
-        emoji: '🎬',
-        description: '웹툰, OTT, 음악, 게임',
-        apps: ['네이버웹툰', '카카오웹툰', '넷플릭스'],
-        status: 'collecting',
+        name: '콘텐츠/웹툰',
+        emoji: '📖',
+        description: '웹툰, 웹소설, OTT',
+        apps: ['카카오페이지', '시리즈'],
+        status: 'active',
+    },
+    {
+        id: 'sns',
+        name: 'SNS/소셜',
+        emoji: '📱',
+        description: '소셜미디어, 커뮤니티',
+        apps: ['TikTok'],
+        status: 'active',
+    },
+    {
+        id: 'game',
+        name: '게임',
+        emoji: '🎮',
+        description: '모바일 게임, AR 게임',
+        apps: ['Pokémon GO'],
+        status: 'active',
     },
     {
         id: 'education',
         name: '교육/자기계발',
         emoji: '📚',
         description: '어학, 자격증, 온라인 강의',
-        apps: ['듀오링고', '클래스101', '야나두'],
-        status: 'collecting',
+        apps: ['듀오링고', 'Cake'],
+        status: 'active',
     },
     {
         id: 'finance',
         name: '금융/핀테크',
         emoji: '💳',
         description: '은행, 증권, 간편결제',
-        apps: ['토스', '카카오뱅크', '신한은행'],
-        status: 'planned',
+        apps: ['토스', '페이북/ISP'],
+        status: 'active',
+    },
+    {
+        id: 'mobility',
+        name: '모빌리티',
+        emoji: '🚗',
+        description: '택시, 대리, 공유 모빌리티',
+        apps: ['Uber'],
+        status: 'active',
     },
     {
         id: 'health',
         name: '헬스/의료',
         emoji: '🏥',
         description: '병원 예약, 피트니스, 건강관리',
-        apps: ['굿닥', '캐시워크', '눔'],
-        status: 'collecting',
+        apps: ['굿닥'],
+        status: 'active',
     },
 ];
 
@@ -109,11 +149,23 @@ const PURPOSE_BY_CATEGORY: Record<string, PurposeOption[]> = {
         { id: 'restock', name: '재입고 알림', emoji: '🔔', description: '품절 상품 재입고' },
         { id: 'retention', name: '재방문 유도', emoji: '💕', description: '장바구니, 찜한 상품' },
     ],
+    beauty: [
+        { id: 'promo', name: '프로모션/할인', emoji: '🏷️', description: '세일, 쿠폰, 특가 알림' },
+        { id: 'newproduct', name: '신상품 출시', emoji: '✨', description: '신제품, 한정판 출시' },
+        { id: 'review', name: '리뷰/랭킹', emoji: '⭐', description: '인기 상품, 리뷰 랭킹' },
+        { id: 'retention', name: '재구매 유도', emoji: '💄', description: '루틴 리마인드, 재구매' },
+    ],
     ecommerce: [
         { id: 'promo', name: '프로모션/할인', emoji: '🏷️', description: '세일, 쿠폰, 적립금' },
         { id: 'newproduct', name: '신상품/입고', emoji: '📦', description: '신규 입점, 새 상품' },
         { id: 'retention', name: '재방문 유도', emoji: '💕', description: '장바구니, 찜, 재구매' },
         { id: 'delivery', name: '배송/주문', emoji: '🚚', description: '배송 시작, 도착 예정' },
+    ],
+    resale: [
+        { id: 'pricedrop', name: '가격 하락', emoji: '📉', description: '관심 상품 가격 변동' },
+        { id: 'newlisting', name: '새 매물 알림', emoji: '🆕', description: '관심 키워드 새 상품' },
+        { id: 'chat', name: '채팅/거래', emoji: '💬', description: '채팅, 거래 요청 알림' },
+        { id: 'event', name: '이벤트/혜택', emoji: '🎁', description: '수수료 할인, 이벤트' },
     ],
     travel: [
         { id: 'promo', name: '특가 항공/숙소', emoji: '✈️', description: '얼리버드, 땡처리 특가' },
@@ -133,6 +185,18 @@ const PURPOSE_BY_CATEGORY: Record<string, PurposeOption[]> = {
         { id: 'retention', name: '이어보기', emoji: '▶️', description: '중단한 콘텐츠 리마인드' },
         { id: 'event', name: '이벤트/혜택', emoji: '🎁', description: '무료 이용권, 캠페인' },
     ],
+    sns: [
+        { id: 'engagement', name: '반응 알림', emoji: '❤️', description: '좋아요, 댓글, 팔로우' },
+        { id: 'trending', name: '트렌딩/추천', emoji: '🔥', description: '인기 콘텐츠, 추천 영상' },
+        { id: 'retention', name: '접속 유도', emoji: '👋', description: '오랜만에 방문, 새 소식' },
+        { id: 'live', name: '라이브/실시간', emoji: '🔴', description: '라이브 시작, 실시간 알림' },
+    ],
+    game: [
+        { id: 'event', name: '이벤트/보상', emoji: '🎁', description: '출석 보상, 이벤트 시작' },
+        { id: 'energy', name: '에너지/자원', emoji: '⚡', description: '스태미나 충전, 자원 회복' },
+        { id: 'update', name: '업데이트', emoji: '🆕', description: '새 콘텐츠, 시즌 시작' },
+        { id: 'social', name: '소셜/길드', emoji: '👥', description: '친구 활동, 길드 알림' },
+    ],
     education: [
         { id: 'promo', name: '할인/이벤트', emoji: '🏷️', description: '강의 할인, 프로모션' },
         { id: 'newcourse', name: '신규 강의', emoji: '📖', description: '새 강의, 커리큘럼' },
@@ -144,6 +208,12 @@ const PURPOSE_BY_CATEGORY: Record<string, PurposeOption[]> = {
         { id: 'benefit', name: '혜택/이벤트', emoji: '🎁', description: '캐시백, 포인트 적립' },
         { id: 'product', name: '금융 상품', emoji: '📊', description: '적금, 대출, 투자 상품' },
         { id: 'reminder', name: '리마인더', emoji: '🔔', description: '납부일, 만기일 알림' },
+    ],
+    mobility: [
+        { id: 'promo', name: '할인/쿠폰', emoji: '🎟️', description: '탑승 할인, 첫 이용 쿠폰' },
+        { id: 'status', name: '탑승 알림', emoji: '🚗', description: '배차 완료, 도착 예정' },
+        { id: 'suggestion', name: '이동 제안', emoji: '📍', description: '퇴근길 추천, 자주 가는 곳' },
+        { id: 'event', name: '이벤트', emoji: '🎉', description: '특별 이벤트, 프로모션' },
     ],
     health: [
         { id: 'appointment', name: '예약 알림', emoji: '📅', description: '진료 예약, 건강검진' },
@@ -170,6 +240,88 @@ const TONE_OPTIONS = [
     { id: 'playful', name: '재미있는', emoji: '🎮', example: '두근두근~ 열어보세요!' },
     { id: 'premium', name: '프리미엄', emoji: '✨', example: '특별히 선보이는' },
 ];
+
+// 카테고리+목적별 placeholder 예시
+const PLACEHOLDER_EXAMPLES: Record<string, Record<string, { product: string; benefit: string }>> = {
+    fashion: {
+        promo: { product: '봄 신상 원피스, 나이키 덩크', benefit: '최대 70% 할인, 오늘만 쿠폰' },
+        newproduct: { product: '25SS 신상 컬렉션, 콜라보 스니커즈', benefit: '단독 선발매, 100장 한정' },
+        restock: { product: '품절됐던 그 후드티, 인기 사이즈', benefit: '지금 바로 구매 가능' },
+        retention: { product: '찜해둔 가디건, 장바구니 아이템', benefit: '가격 인하, 마지막 재고' },
+    },
+    beauty: {
+        promo: { product: '인기 선크림, 베스트 토너', benefit: '1+1, 30% 할인' },
+        newproduct: { product: '신규 런칭 세럼, 콜라보 팔레트', benefit: '사전예약 특가, 증정품' },
+        review: { product: '리뷰 1만개 파운데이션', benefit: '평점 4.9 인증, 민감성 추천' },
+        retention: { product: '루틴 세럼 재구매', benefit: '자동결제 10% 할인' },
+    },
+    ecommerce: {
+        promo: { product: '오늘의 특가 식품, 생필품', benefit: '첫구매 5천원 할인, 무료배송' },
+        newproduct: { product: '신규 입점 브랜드, 프리미엄 식품', benefit: '런칭 기념 할인' },
+        retention: { product: '장바구니에 담은 상품', benefit: '재고 소진 임박, 10% 쿠폰' },
+        delivery: { product: '주문하신 상품', benefit: '오늘 도착 예정' },
+    },
+    travel: {
+        promo: { product: '오사카 3박4일, 제주 리조트', benefit: '얼리버드 40% 할인' },
+        pricedrop: { product: '찜한 도쿄 호텔', benefit: '2만원 인하, 최저가 보장' },
+        retention: { product: '예약 중이던 발리 여행', benefit: '좌석 3자리 남음' },
+        destination: { product: '2월 인기 여행지', benefit: '벚꽃 시즌 특가' },
+    },
+    food: {
+        promo: { product: '치킨, 피자 브랜드', benefit: '배달비 무료, 3천원 할인' },
+        newmenu: { product: '신메뉴 버거, 시즌 음료', benefit: '한정 출시, 첫 주문 무료' },
+        retention: { product: '자주 시킨 떡볶이집', benefit: '재주문 쿠폰 도착' },
+        event: { product: '브랜드 콜라보 세트', benefit: '선착순 100명 굿즈 증정' },
+    },
+    content: {
+        newcontent: { product: '인기 웹툰 신규 회차', benefit: '지금 무료로 보기' },
+        recommendation: { product: '취향 저격 신작 웹소설', benefit: '1~3화 무료 공개' },
+        retention: { product: '보다 멈춘 작품', benefit: '이어보기 리마인드' },
+        event: { product: '전작 정주행 이벤트', benefit: '전편 무료 쿠폰' },
+    },
+    sns: {
+        engagement: { product: '내 영상 반응', benefit: '좋아요 1000개 돌파' },
+        trending: { product: '지금 뜨는 챌린지', benefit: '참여하고 선물 받기' },
+        retention: { product: '새로운 팔로워 소식', benefit: '3일간 못 본 피드' },
+        live: { product: '팔로우한 크리에이터', benefit: '지금 라이브 중' },
+    },
+    game: {
+        event: { product: '출석 체크 보상', benefit: '7일 연속 다이아 100개' },
+        energy: { product: '스태미나 풀 충전', benefit: '지금 접속하면 보너스' },
+        update: { product: '새 시즌 업데이트', benefit: '신규 캐릭터 출시' },
+        social: { product: '길드 레이드', benefit: '30분 후 시작' },
+    },
+    education: {
+        promo: { product: '베스트 영어 강의', benefit: '50% 할인 마감 D-3' },
+        newcourse: { product: '신규 토익 클래스', benefit: '오픈 기념 30% 할인' },
+        retention: { product: '듣다 멈춘 강의', benefit: '복습 퀴즈 도착' },
+        achievement: { product: '연속 학습 7일', benefit: '배지 획득, 할인 쿠폰' },
+    },
+    finance: {
+        transaction: { product: '계좌 입금/출금', benefit: '50,000원 입금 완료' },
+        benefit: { product: '이번 달 캐시백', benefit: '12,000원 적립 완료' },
+        product: { product: '연 5% 적금 상품', benefit: '가입 즉시 만원 지급' },
+        reminder: { product: '카드 결제일', benefit: '내일 자동 결제 예정' },
+    },
+    mobility: {
+        promo: { product: '첫 탑승 쿠폰', benefit: '5,000원 할인' },
+        status: { product: '호출한 차량', benefit: '3분 후 도착 예정' },
+        suggestion: { product: '퇴근길 추천', benefit: '지금 택시 대기 없음' },
+        event: { product: '금요일 이벤트', benefit: '야간 20% 할인' },
+    },
+    health: {
+        appointment: { product: '내일 진료 예약', benefit: '오전 10시 피부과' },
+        activity: { product: '오늘 걸음 수', benefit: '8,000보 달성, 2,000보 남음' },
+        retention: { product: '복약 시간', benefit: '비타민 먹을 시간이에요' },
+        achievement: { product: '주간 운동 목표', benefit: '달성! 배지 획득' },
+    },
+    resale: {
+        pricedrop: { product: '찜한 나이키 덩크', benefit: '3만원 가격 인하' },
+        newlisting: { product: '관심 키워드 새 상품', benefit: '방금 등록된 매물' },
+        chat: { product: '판매 중인 상품', benefit: '구매 희망 채팅 도착' },
+        event: { product: '수수료 무료 이벤트', benefit: '이번 주말만 0%' },
+    },
+};
 
 // ============================================
 // 타입 정의
@@ -218,6 +370,15 @@ export const Generate: React.FC = () => {
 
     // Feed에서 넘어온 참조 메시지로 자동 선택
     const [autoApplied, setAutoApplied] = useState(false);
+
+    // 복사 토스트
+    const [showCopyToast, setShowCopyToast] = useState(false);
+
+    const handleCopy = (title: string, body: string) => {
+        navigator.clipboard.writeText(`${title}\n${body}`);
+        setShowCopyToast(true);
+        setTimeout(() => setShowCopyToast(false), 2000);
+    };
 
     useEffect(() => {
         if (referenceFromFeed && !autoApplied) {
@@ -272,6 +433,52 @@ export const Generate: React.FC = () => {
     const currentCategory = useMemo(() => {
         return APP_CATEGORIES.find(c => c.id === appCategory);
     }, [appCategory]);
+
+    // Step 4 동적 placeholder 계산
+    const dynamicPlaceholder = useMemo(() => {
+        // 기본값
+        const defaultPlaceholder = {
+            product: '봄 신상 원피스, 제주 3박4일 패키지',
+            benefit: '50% 할인, 무료배송, 오늘만 특가',
+        };
+
+        // 카테고리+목적 기반 placeholder
+        if (appCategory && purpose) {
+            const categoryExample = PLACEHOLDER_EXAMPLES[appCategory]?.[purpose];
+            if (categoryExample) {
+                // 전략에 따라 혜택 문구 보강
+                let benefit = categoryExample.benefit;
+                if (strategy === 'urgency') {
+                    benefit = `${benefit}, 마감 임박`;
+                } else if (strategy === 'social_proof') {
+                    benefit = `${benefit}, 인기 1위`;
+                } else if (strategy === 'curiosity') {
+                    benefit = `비밀 혜택 공개`;
+                }
+
+                // 톤에 따라 스타일 힌트 추가
+                let product = categoryExample.product;
+                if (tone === 'playful') {
+                    product = `${product} 🎉`;
+                } else if (tone === 'premium') {
+                    product = `프리미엄 ${product}`;
+                }
+
+                return { product, benefit };
+            }
+        }
+
+        // 카테고리만 있는 경우 - 해당 카테고리의 첫 번째 목적 예시 사용
+        if (appCategory && PLACEHOLDER_EXAMPLES[appCategory]) {
+            const firstPurpose = Object.keys(PLACEHOLDER_EXAMPLES[appCategory])[0];
+            const example = PLACEHOLDER_EXAMPLES[appCategory][firstPurpose];
+            if (example) {
+                return example;
+            }
+        }
+
+        return defaultPlaceholder;
+    }, [appCategory, purpose, strategy, tone]);
 
     // 전략 선택 시 참고 메시지 로드
     useEffect(() => {
@@ -738,7 +945,7 @@ export const Generate: React.FC = () => {
                                     type="text"
                                     value={productName}
                                     onChange={e => setProductName(e.target.value)}
-                                    placeholder="예: 봄 신상 원피스, 제주 3박4일 패키지"
+                                    placeholder={`예: ${dynamicPlaceholder.product}`}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-200 outline-none transition-all"
                                 />
                             </div>
@@ -751,7 +958,7 @@ export const Generate: React.FC = () => {
                                     type="text"
                                     value={keyBenefit}
                                     onChange={e => setKeyBenefit(e.target.value)}
-                                    placeholder="예: 50% 할인, 무료배송, 오늘만 특가"
+                                    placeholder={`예: ${dynamicPlaceholder.benefit}`}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-200 outline-none transition-all"
                                 />
                             </div>
@@ -808,40 +1015,57 @@ export const Generate: React.FC = () => {
                             </div>
                         ) : generatedMessages.length > 0 ? (
                             <div className="space-y-4">
-                                {generatedMessages.map((msg, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer group"
-                                    >
-                                        <div className="flex items-start gap-4">
-                                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
-                                                {HOOK_TYPE_INFO[msg.hookType]?.emoji || '📱'}
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="font-bold text-gray-900 text-lg mb-1">
-                                                    {msg.title}
-                                                </h3>
-                                                <p className="text-gray-600">
-                                                    {msg.body}
-                                                </p>
-                                                <div className="flex items-center gap-2 mt-3">
-                                                    <span className={`px-2 py-1 rounded-lg text-xs ${HOOK_TYPE_INFO[msg.hookType]?.color || 'bg-gray-100'}`}>
-                                                        {msg.hook}
-                                                    </span>
+                                {generatedMessages.map((msg, idx) => {
+                                    const hookInfo = HOOK_TYPE_INFO[msg.hookType];
+                                    const styleLabels: Record<string, string> = {
+                                        ultra_short: '초간결',
+                                        direct: '직접 전달',
+                                        emotional: '공감/감성',
+                                        story: '스토리텔링',
+                                        curious: '호기심 유발',
+                                    };
+                                    const styleLabel = (msg as GeneratedMessage & { style?: string }).style
+                                        ? styleLabels[(msg as GeneratedMessage & { style?: string }).style!]
+                                        : null;
+
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer group"
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
+                                                    {hookInfo?.emoji || '📱'}
                                                 </div>
+                                                <div className="flex-1">
+                                                    <h3 className="font-bold text-gray-900 text-lg mb-1">
+                                                        {msg.title}
+                                                    </h3>
+                                                    <p className="text-gray-600">
+                                                        {msg.body}
+                                                    </p>
+                                                    <div className="flex items-center gap-2 mt-3">
+                                                        <span className={`px-2 py-1 rounded-lg text-xs ${hookInfo?.color || 'bg-gray-100'}`}>
+                                                            {hookInfo?.emoji} {hookInfo?.name || msg.hookType}
+                                                        </span>
+                                                        {styleLabel && (
+                                                            <span className="px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-600">
+                                                                {styleLabel}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleCopy(msg.title, msg.body)}
+                                                    className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
+                                                    title="복사하기"
+                                                >
+                                                    📋
+                                                </button>
                                             </div>
-                                            <button
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(`${msg.title}\n${msg.body}`);
-                                                }}
-                                                className="opacity-0 group-hover:opacity-100 p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
-                                                title="복사하기"
-                                            >
-                                                📋
-                                            </button>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div className="bg-gray-100 rounded-2xl p-8 text-center">
@@ -857,10 +1081,18 @@ export const Generate: React.FC = () => {
                                 처음부터 다시
                             </button>
                             <button
-                                onClick={() => setStep(4)}
-                                className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                                onClick={handleGenerate}
+                                disabled={isGenerating}
+                                className="px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
-                                다시 생성
+                                {isGenerating ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        생성 중...
+                                    </>
+                                ) : (
+                                    '🔄 다시 생성'
+                                )}
                             </button>
                         </div>
                     </div>
@@ -907,6 +1139,16 @@ export const Generate: React.FC = () => {
                     </div>
                 )}
             </main>
+
+            {/* 복사 토스트 */}
+            {showCopyToast && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+                    <div className="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
+                        <span className="text-green-400">✓</span>
+                        클립보드에 복사되었어요
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

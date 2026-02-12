@@ -149,18 +149,33 @@ export const useTimingData = (options: TimingDataOptions = {}) => {
             grouped[key] = (grouped[key] || 0) + item.count;
         });
 
-        // 밀도 계산을 위한 통계
+        // 밀도 계산을 위한 통계 (퍼센타일 기반)
         const counts = Object.values(grouped);
-        const maxCount = Math.max(...counts, 1);
-        const avgCount = counts.reduce((a, b) => a + b, 0) / counts.length;
+        const nonZeroCounts = counts.filter(c => c > 0).sort((a, b) => a - b);
+
+        // 퍼센타일 계산 (0이 아닌 값들 기준)
+        const getPercentile = (arr: number[], p: number) => {
+            if (arr.length === 0) return 0;
+            const index = Math.ceil((p / 100) * arr.length) - 1;
+            return arr[Math.max(0, index)];
+        };
+
+        const p30 = getPercentile(nonZeroCounts, 30);  // 하위 30%
+        const p60 = getPercentile(nonZeroCounts, 60);  // 중간 60%
+        const p90 = getPercentile(nonZeroCounts, 90);  // 상위 10%
 
         return Object.entries(grouped).map(([key, count]) => {
             const [day, hour] = key.split('-').map(Number);
 
+            // 퍼센타일 기반 밀도 분류
+            // - peak(밀집): 상위 10% (90th 이상)
+            // - high(활발): 60th ~ 90th
+            // - medium(보통): 30th ~ 60th
+            // - low(한산): 하위 30%
             let density: 'low' | 'medium' | 'high' | 'peak' = 'low';
-            if (count > avgCount * 1.5) density = 'peak';
-            else if (count > avgCount) density = 'high';
-            else if (count > avgCount * 0.5) density = 'medium';
+            if (count >= p90 && count > 0) density = 'peak';
+            else if (count >= p60 && count > 0) density = 'high';
+            else if (count >= p30 && count > 0) density = 'medium';
 
             return {
                 dayOfWeek: day,  // 화면 인덱스 (0=월, 6=일)
