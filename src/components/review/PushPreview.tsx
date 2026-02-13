@@ -120,8 +120,11 @@ export const PushPreview: React.FC<PushPreviewProps> = ({ appName, title, body }
                     >
                         <div className="flex items-start gap-3">
                             {/* 앱 아이콘 */}
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
-                                {appName ? appName.charAt(0) : 'A'}
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm bg-white border border-gray-200">
+                                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9" stroke="#111827" strokeWidth="2" fill="none" />
+                                    <path d="M8 12L12 8L16 12M12 8V16" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
                             </div>
 
                             {/* 내용 */}

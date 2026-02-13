@@ -136,6 +136,38 @@ export const TRIGGER_INFO: Record<TriggerType, { name: string; emoji: string; de
     },
 };
 
+const ANALYZABLE_TRIGGER_SET = new Set<TriggerType>([
+    'urgency',
+    'loss_aversion',
+    'greed',
+    'personalization',
+    'relevance',
+    'curiosity',
+    'social_proof',
+    'novelty',
+    'fun',
+    'habit',
+    'reminder',
+]);
+
+const EXCLUDED_TRIGGER_VALUES = new Set([
+    '',
+    'none',
+    'other',
+    'unknown',
+    'uncategorized',
+    '미분류',
+    '기타',
+]);
+
+function normalizeTrigger(trigger: unknown): TriggerType | null {
+    const raw = String(trigger ?? '').trim().toLowerCase();
+    if (!raw || EXCLUDED_TRIGGER_VALUES.has(raw)) return null;
+
+    const candidate = raw as TriggerType;
+    return ANALYZABLE_TRIGGER_SET.has(candidate) ? candidate : null;
+}
+
 interface MessageWithHook {
     id: number;
     app_name: string | null;
@@ -250,19 +282,24 @@ export const useMarketingHooks = (options: UseMarketingHooksOptions = {}) => {
 
         // 2. 트리거별 분포
         const triggerCounts = new Map<TriggerType, number>();
+        let analyzedTriggerTotal = 0;
         for (const msg of messages) {
-            if (msg.hook_trigger) {
-                triggerCounts.set(msg.hook_trigger, (triggerCounts.get(msg.hook_trigger) || 0) + 1);
-            }
+            const trigger = normalizeTrigger(msg.hook_trigger);
+            if (!trigger) continue;
+
+            analyzedTriggerTotal++;
+            triggerCounts.set(trigger, (triggerCounts.get(trigger) || 0) + 1);
         }
 
-        const triggerDistribution: TriggerDistribution[] = [...triggerCounts.entries()]
-            .map(([trigger, count]) => ({
-                trigger,
-                count,
-                percentage: Math.round((count / total) * 100),
-            }))
-            .sort((a, b) => b.count - a.count);
+        const triggerDistribution: TriggerDistribution[] = analyzedTriggerTotal === 0
+            ? []
+            : [...triggerCounts.entries()]
+                .map(([trigger, count]) => ({
+                    trigger,
+                    count,
+                    percentage: Math.round((count / analyzedTriggerTotal) * 100),
+                }))
+                .sort((a, b) => b.count - a.count);
 
         // 3. 앱별 전략 분석
         const appData = new Map<string, { types: Map<HookType, number>; hooks: string[] }>();
@@ -309,7 +346,7 @@ export const useMarketingHooks = (options: UseMarketingHooksOptions = {}) => {
 
             const hook = msg.marketing_hook;
             if (!hookCounts.has(hook)) {
-                hookCounts.set(hook, { count: 0, type: msg.hook_type, trigger: msg.hook_trigger, apps: new Set() });
+                hookCounts.set(hook, { count: 0, type: msg.hook_type, trigger: normalizeTrigger(msg.hook_trigger), apps: new Set() });
             }
             const data = hookCounts.get(hook)!;
             data.count++;

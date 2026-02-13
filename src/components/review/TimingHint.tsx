@@ -6,15 +6,19 @@ interface TimingHintProps {
     peakHours?: { hour: number; count: number }[];
 }
 
-// 카테고리별 추천 시간대 (기본값)
+// 업종 카테고리별 추천 시간대
 const CATEGORY_TIMING: Record<string, { peak: string; description: string }> = {
-    promo: { peak: '10-12시, 19-21시', description: '프로모션은 출근 후와 퇴근 후가 효과적' },
-    product: { peak: '12-14시, 20-22시', description: '상품 소개는 점심시간과 저녁 휴식 시간대가 좋아요' },
-    retention: { peak: '18-20시', description: '리텐션 메시지는 퇴근 시간대에 효과적' },
-    fnb: { peak: '11-12시, 17-18시', description: '음식 관련은 식사 시간 직전이 최적' },
     fashion: { peak: '20-22시', description: '패션은 저녁 여유 시간대에 반응이 좋아요' },
     ecommerce: { peak: '12-13시, 21-22시', description: '이커머스는 점심과 늦은 저녁이 효과적' },
+    food: { peak: '11-12시, 17-18시', description: 'F&B는 식사 시간 직전이 최적' },
     travel: { peak: '12-14시, 21-23시', description: '여행은 점심시간과 취침 전 계획 시간대가 좋아요' },
+    mobility: { peak: '7-9시, 17-19시', description: '모빌리티는 출퇴근 시간대에 반응이 좋아요' },
+    finance: { peak: '9-10시, 18-20시', description: '금융은 출근 직후와 퇴근 후가 효과적' },
+    content: { peak: '20-24시', description: '콘텐츠/엔터는 저녁~심야 사용 시간대가 강해요' },
+    game: { peak: '18-24시', description: '게임은 퇴근 후 몰입 시간대 반응이 높아요' },
+    education: { peak: '7-9시, 20-22시', description: '교육/자기계발은 출근 전과 저녁 학습 시간대가 좋아요' },
+    health: { peak: '7-9시, 20-21시', description: '헬스/의료는 아침 루틴과 저녁 정리 시간대가 좋아요' },
+    others: { peak: '10-12시, 19-21시', description: '일반적으로 오전과 퇴근 후가 효과적' },
 };
 
 export const TimingHint: React.FC<TimingHintProps> = ({ category, peakHours }) => {

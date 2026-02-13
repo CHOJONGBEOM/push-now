@@ -1,4 +1,5 @@
-﻿import type { Database } from './database';
+import type { Database } from './database';
+import { FEED_CATEGORIES, FEED_CATEGORY_EMOJIS } from '../utils/appCategories';
 
 export type PushMessage = Database['public']['Tables']['push_messages']['Row'];
 
@@ -8,28 +9,9 @@ export interface FeedFilters {
   selectedDates?: string[]; // YYYY-MM-DD format
 }
 
-// 산업 기반 앱 카테고리
-export const CATEGORIES = [
-  { id: 'all', name: '전체', nameEn: 'All', emoji: '🧭' },
-  { id: 'fashion', name: '패션', nameEn: 'Fashion', emoji: '👗' },
-  { id: 'ecommerce', name: '이커머스', nameEn: 'E-commerce', emoji: '🛒' },
-  { id: 'food', name: 'F&B', nameEn: 'F&B', emoji: '🍔' },
-  { id: 'travel', name: '여행', nameEn: 'Travel', emoji: '✈️' },
-  { id: 'mobility', name: '모빌리티', nameEn: 'Mobility', emoji: '🚕' },
-  { id: 'finance', name: '금융', nameEn: 'Finance', emoji: '💳' },
-  { id: 'others', name: '기타', nameEn: 'Others', emoji: '📦' },
-] as const;
-
-export const CATEGORY_EMOJIS: Record<string, string> = {
-  all: '🧭',
-  fashion: '👗',
-  ecommerce: '🛒',
-  food: '🍔',
-  travel: '✈️',
-  mobility: '🚕',
-  finance: '💳',
-  others: '📦',
-};
+// 산업 기반 앱 카테고리 (single source: utils/appCategories)
+export const CATEGORIES = FEED_CATEGORIES;
+export const CATEGORY_EMOJIS: Record<string, string> = FEED_CATEGORY_EMOJIS;
 
 // 메시지 목적 카테고리
 export const MESSAGE_CATEGORIES = [

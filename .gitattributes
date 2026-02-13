@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+# Keep source/text files in UTF-8 friendly flow.
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.json text
+*.css text
+*.html text
+*.md text
+*.yml text
+*.yaml text
+*.env text
+*.txt text
+

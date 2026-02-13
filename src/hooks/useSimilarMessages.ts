@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../config/supabase';
 import type { PushMessage } from '../types/push-message';
+import { normalizeAppCategory } from '../utils/appCategories';
 
 interface UseSimilarMessagesResult {
     messages: PushMessage[];
@@ -36,6 +37,20 @@ export const useSimilarMessages = (): UseSimilarMessagesResult => {
                 return;
             }
 
+            // 업종 카테고리 필터: apps 테이블에서 해당 카테고리의 앱 목록 조회
+            let categoryAppNames: string[] | null = null;
+            if (category && category !== 'all') {
+                const { data: apps } = await supabase
+                    .from('apps')
+                    .select('app_name, category, is_active')
+                    .eq('is_active', true);
+                if (apps && apps.length > 0) {
+                    categoryAppNames = (apps as { app_name: string; category: string | null; is_active: boolean }[])
+                        .filter((app) => normalizeAppCategory(app.category, app.app_name) === category)
+                        .map((app) => app.app_name);
+                }
+            }
+
             // 각 키워드로 검색 (OR 조건)
             const searchConditions = keywords
                 .map(k => `body.ilike.%${k}%,title.ilike.%${k}%`)
@@ -49,9 +64,9 @@ export const useSimilarMessages = (): UseSimilarMessagesResult => {
                 .order('posted_at', { ascending: false })
                 .limit(20);
 
-            // 카테고리 필터 (선택적)
-            if (category && category !== 'all') {
-                queryBuilder = queryBuilder.eq('category', category);
+            // 업종 카테고리 기반 앱 필터
+            if (categoryAppNames && categoryAppNames.length > 0) {
+                queryBuilder = queryBuilder.in('app_name', categoryAppNames);
             }
 
             const { data, error: fetchError } = await queryBuilder;

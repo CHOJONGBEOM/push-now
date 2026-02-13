@@ -5,7 +5,10 @@ import { EmojiSuggestions } from '../components/review/EmojiSuggestions';
 import { SimilarMessages } from '../components/review/SimilarMessages';
 import { TimingHint } from '../components/review/TimingHint';
 import { useSimilarMessages, extractKeywords } from '../hooks/useSimilarMessages';
-import { MESSAGE_CATEGORIES } from '../types/push-message';
+import { GENERATE_APP_CATEGORIES } from '../utils/appCategories';
+
+// 'all' 제외한 업종 카테고리 목록
+const INDUSTRY_CATEGORIES = GENERATE_APP_CATEGORIES;
 
 type TabType = 'single' | 'compare';
 type FocusedField = 'title' | 'body' | 'titleB' | 'bodyB';
@@ -17,7 +20,7 @@ export const Review: React.FC = () => {
     const [appName, setAppName] = useState('');
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
-    const [category, setCategory] = useState('promo');
+    const [category, setCategory] = useState('ecommerce');
 
     // A/B 비교용 두 번째 메시지
     const [titleB, setTitleB] = useState('');
@@ -147,7 +150,7 @@ export const Review: React.FC = () => {
                                             onChange={(e) => setCategory(e.target.value)}
                                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                                         >
-                                            {MESSAGE_CATEGORIES.filter(c => !['transaction', 'empty'].includes(c.id)).map(cat => (
+                                            {INDUSTRY_CATEGORIES.map(cat => (
                                                 <option key={cat.id} value={cat.id}>
                                                     {cat.emoji} {cat.name}
                                                 </option>
@@ -274,6 +277,7 @@ export const Review: React.FC = () => {
                             category={category}
                             keywords={keywords}
                             onSelect={handleEmojiSelect}
+                            referenceMessages={similarMessages}
                         />
 
                         {/* 발송 시간 힌트 */}

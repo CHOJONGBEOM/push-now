@@ -256,10 +256,14 @@ export const Timing: React.FC = () => {
                                     isLoading={mainData.isLoading}
                                     days={days}
                                     appNames={selectedApps}
+                                    startDate={periodDates.period1.start}
+                                    endDate={periodDates.period1.end}
                                 />
                                 <GoldenHoursCard
                                     goldenHours={mainData.goldenHours}
+                                    avoidTimes={mainData.avoidTimes}
                                     avoidTime={mainData.avoidTime}
+                                    sampleCount={mainData.totalCount}
                                     isLoading={mainData.isLoading}
                                 />
                             </div>
@@ -281,10 +285,14 @@ export const Timing: React.FC = () => {
                                     isLoading={compareData.isLoading}
                                     days={days}
                                     appNames={selectedApps}
+                                    startDate={periodDates.period2.start}
+                                    endDate={periodDates.period2.end}
                                 />
                                 <GoldenHoursCard
                                     goldenHours={compareData.goldenHours}
+                                    avoidTimes={compareData.avoidTimes}
                                     avoidTime={compareData.avoidTime}
+                                    sampleCount={compareData.totalCount}
                                     isLoading={compareData.isLoading}
                                 />
                             </div>
@@ -367,7 +375,9 @@ export const Timing: React.FC = () => {
                                     />
                                     <GoldenHoursCard
                                         goldenHours={mainData.goldenHours}
+                                        avoidTimes={mainData.avoidTimes}
                                         avoidTime={mainData.avoidTime}
+                                        sampleCount={mainData.totalCount}
                                         isLoading={mainData.isLoading}
                                     />
                                 </div>
@@ -394,7 +404,9 @@ export const Timing: React.FC = () => {
                                         />
                                         <GoldenHoursCard
                                             goldenHours={compareData.goldenHours}
+                                            avoidTimes={compareData.avoidTimes}
                                             avoidTime={compareData.avoidTime}
+                                            sampleCount={compareData.totalCount}
                                             isLoading={compareData.isLoading}
                                         />
                                     </div>
@@ -441,7 +453,9 @@ export const Timing: React.FC = () => {
                         {/* 골든아워 카드 */}
                         <GoldenHoursCard
                             goldenHours={mainData.goldenHours}
+                            avoidTimes={mainData.avoidTimes}
                             avoidTime={mainData.avoidTime}
+                            sampleCount={mainData.totalCount}
                             isLoading={mainData.isLoading}
                         />
 

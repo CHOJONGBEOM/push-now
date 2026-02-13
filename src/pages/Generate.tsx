@@ -3,6 +3,7 @@ import { Navbar } from '../components/Navbar';
 import { HOOK_TYPE_INFO, TRIGGER_INFO, type HookType, type TriggerType } from '../hooks/useMarketingHooks';
 import { supabase } from '../config/supabase';
 import { getAppIcon } from '../utils/appIcons';
+import { GENERATE_APP_CATEGORIES, getGenerateCategoryById } from '../utils/appCategories';
 
 // ==========================================
 // 1. 타입 정의
@@ -26,30 +27,6 @@ interface ReferenceMessage {
     marketing_hook: string;
     hook_type: HookType;
 }
-
-// ==========================================
-// 2. 앱 카테고리 정의
-// ==========================================
-interface AppCategory {
-    id: string;
-    name: string;
-    emoji: string;
-    description: string;
-    apps: string[];
-}
-
-const APP_CATEGORIES: AppCategory[] = [
-    { id: 'fashion', name: '패션/뷰티', emoji: '👗', description: '의류, 신발, 화장품, 액세서리', apps: ['무신사', '29CM', '지그재그', '에이블리', 'LookPin', 'EQL', '4910', '화해', '강남언니'] },
-    { id: 'ecommerce', name: '종합 이커머스', emoji: '🛒', description: '식품, 생활용품, 가구, 인테리어', apps: ['쿠팡', '컬리', 'N+스토어', '오늘의집', '번개장터'] },
-    { id: 'travel', name: '여행/숙박', emoji: '✈️', description: '항공, 호텔, 액티비티, 렌터카', apps: ['마이리얼트립', 'NOL(야놀자)', '여기어때', 'KLOOK', 'Trip.com', '트리플'] },
-    { id: 'mobility', name: '모빌리티/교통', emoji: '🚕', description: '택시, 대리, 렌터카, 이동 서비스', apps: ['Uber'] },
-    { id: 'food', name: 'F&B/배달', emoji: '🍔', description: '음식 배달, 프랜차이즈, 카페', apps: ['배달의민족', '쿠팡이츠', '롯데잇츠'] },
-    { id: 'content', name: '콘텐츠/엔터', emoji: '🎬', description: '웹툰, OTT, 음악, 숏폼', apps: ['카카오페이지', '시리즈', 'TikTok'] },
-    { id: 'game', name: '게임', emoji: '🎮', description: '모바일 게임, 캐주얼 게임, RPG', apps: ['Pokémon GO'] },
-    { id: 'education', name: '교육/자기계발', emoji: '📚', description: '어학, 자격증, 온라인 강의', apps: ['듀오링고', 'Cake'] },
-    { id: 'finance', name: '금융/핀테크', emoji: '💳', description: '은행, 증권, 간편결제', apps: ['토스', '페이북/ISP'] },
-    { id: 'health', name: '헬스/의료', emoji: '🏥', description: '병원 예약, 피트니스, 건강관리', apps: ['굿닥'] },
-];
 
 // ==========================================
 // 3. 목적별 설정 (MECE 분류)
@@ -228,7 +205,7 @@ export const Generate: React.FC = () => {
 
     // 현재 카테고리 정보
     const currentCategory = useMemo(() => {
-        return APP_CATEGORIES.find(c => c.id === appCategory);
+        return getGenerateCategoryById(appCategory);
     }, [appCategory]);
 
     const currentGuide = useMemo(() => {
@@ -266,7 +243,7 @@ export const Generate: React.FC = () => {
         setIsLoadingRef(true);
         setIsFallbackRef(false);
         try {
-            const category = APP_CATEGORIES.find(c => c.id === categoryId);
+            const category = getGenerateCategoryById(categoryId);
             const appNames = category?.apps || [];
 
             const now = new Date();
@@ -373,7 +350,7 @@ export const Generate: React.FC = () => {
     // 스타일 코퍼스 로드 (카테고리 기준, 전략 무관)
     const loadStyleCorpusMessages = async (categoryId: string) => {
         try {
-            const category = APP_CATEGORIES.find(c => c.id === categoryId);
+            const category = getGenerateCategoryById(categoryId);
             const appNames = category?.apps || [];
             const oneYearAgo = new Date(new Date().getFullYear() - 1, new Date().getMonth(), new Date().getDate()).toISOString();
 
@@ -587,7 +564,7 @@ export const Generate: React.FC = () => {
                             어떤 앱인가요?
                         </h2>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            {APP_CATEGORIES.map(category => (
+                            {GENERATE_APP_CATEGORIES.map(category => (
                                 <button
                                     key={category.id}
                                     onClick={() => setAppCategory(category.id)}

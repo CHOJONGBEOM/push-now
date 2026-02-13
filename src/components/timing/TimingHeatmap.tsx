@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { HeatmapCell } from '../../hooks/useTimingData';
 import { TimingDrilldownModal } from './TimingDrilldownModal';
+import { getEcommerceEvent, useKoreanHolidays } from '../../hooks/useKoreanHolidays';
 
 interface TimingHeatmapProps {
     data: HeatmapCell[];
@@ -38,6 +39,13 @@ const getDensityStyle = (density: string, count: number) => {
 
 const HOUR_RANGES = Array.from({ length: 24 }, (_, i) => `${i}시`);
 
+const formatLocalYmd = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+};
+
 export const TimingHeatmap: React.FC<TimingHeatmapProps> = ({
     data,
     isLoading = false,
@@ -46,15 +54,68 @@ export const TimingHeatmap: React.FC<TimingHeatmapProps> = ({
     startDate,
     endDate,
 }) => {
-    // 날짜 범위 계산
     const dateRange = React.useMemo(() => {
-        const end = endDate || new Date();
-        const start = startDate || new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        const end = endDate ? new Date(endDate) : new Date();
+        const start = startDate ? new Date(startDate) : new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
         return {
+            startDate: start,
+            endDate: end,
             start: start.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
             end: end.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
         };
     }, [days, startDate, endDate]);
+
+    const startYear = dateRange.startDate.getFullYear();
+    const endYear = dateRange.endDate.getFullYear();
+    const { holidays: startYearHolidays } = useKoreanHolidays(startYear);
+    const { holidays: endYearHolidays } = useKoreanHolidays(endYear);
+
+    const holidays = React.useMemo(
+        () => (startYear === endYear ? startYearHolidays : { ...startYearHolidays, ...endYearHolidays }),
+        [startYear, endYear, startYearHolidays, endYearHolidays],
+    );
+
+    const timelineEvents = React.useMemo(() => {
+        const events: { date: string; label: string; emoji: string; isHoliday: boolean }[] = [];
+        const cursor = new Date(dateRange.startDate);
+        const end = dateRange.endDate;
+
+        while (cursor <= end) {
+            const dateStr = formatLocalYmd(cursor);
+            const holiday = holidays[dateStr];
+            if (holiday?.isHoliday) {
+                events.push({
+                    date: dateStr,
+                    label: holiday.name,
+                    emoji: '🎌',
+                    isHoliday: true,
+                });
+            }
+
+            const commerceEvent = getEcommerceEvent(dateStr);
+            if (commerceEvent) {
+                events.push({
+                    date: dateStr,
+                    label: commerceEvent.name,
+                    emoji: commerceEvent.emoji,
+                    isHoliday: false,
+                });
+            }
+
+            cursor.setDate(cursor.getDate() + 1);
+        }
+
+        const uniq = new Map<string, { date: string; label: string; emoji: string; isHoliday: boolean }>();
+        for (const event of events) {
+            uniq.set(`${event.date}-${event.label}`, event);
+        }
+
+        return [...uniq.values()].sort((a, b) => a.date.localeCompare(b.date));
+    }, [dateRange.startDate, dateRange.endDate, holidays]);
+
+    const shouldShowEventChips = days <= 14 || Boolean(startDate && endDate);
     const [selectedCell, setSelectedCell] = useState<{
         dayOfWeek: number;
         dayName: string;
@@ -135,6 +196,27 @@ export const TimingHeatmap: React.FC<TimingHeatmapProps> = ({
                     </div>
                 </div>
             </div>
+
+            {shouldShowEventChips && timelineEvents.length > 0 && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                    {timelineEvents.slice(0, 10).map((event) => (
+                        <div
+                            key={`${event.date}-${event.label}`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${
+                                event.isHoliday
+                                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                    : 'bg-blue-50 text-blue-700 border border-blue-200'
+                            }`}
+                        >
+                            <span>{event.emoji}</span>
+                            <span className="font-medium">{event.label}</span>
+                            <span className="opacity-70">
+                                {new Date(event.date).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* 히트맵 */}
             <div className="overflow-x-auto">
