@@ -14,7 +14,8 @@
 const getLocalIconPath = (appName: string): string => {
     // 파일명에 사용할 수 없는 문자 처리
     const safeName = appName.replace(/[\/\\:*?"<>|]/g, '');
-    return `/icons/apps/${safeName}.png`;
+    // URL 인코딩 (한국어, +, 공백 등 특수문자 처리 - Vercel CDN 호환)
+    return `/icons/apps/${encodeURIComponent(safeName)}.png`;
 };
 
 // App icon mapping - returns icon URL based on app name
