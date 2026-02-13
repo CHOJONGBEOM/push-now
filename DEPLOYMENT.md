@@ -27,7 +27,7 @@ git push -u origin main
 로컬의 `.env.local` 파일에 다음 값들이 설정되어 있는지 확인하세요:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-- `GEMINI_API_KEY`
+- `OPENAI_API_KEY`
 
 ## Vercel 배포 방법
 
@@ -51,11 +51,13 @@ git push -u origin main
 #### 4단계: 환경 변수 설정
 **Environment Variables** 섹션에서 다음을 추가:
 
+> 참고: `OPENAI_API_KEY`는 Vite `VITE_` 변수로 두지 말고, Supabase Edge Function secret으로 설정하세요.
+
 | Name | Value |
 |------|-------|
 | `VITE_SUPABASE_URL` | 로컬 `.env.local`의 값 복사 |
 | `VITE_SUPABASE_ANON_KEY` | 로컬 `.env.local`의 값 복사 |
-| `GEMINI_API_KEY` | 로컬 `.env.local`의 값 복사 |
+| `OPENAI_API_KEY` | OpenAI API Key 값 |
 
 **중요**: 모든 환경 변수는 **Production**, **Preview**, **Development** 모두 체크하세요.
 
@@ -85,7 +87,7 @@ vercel
 # 환경 변수 추가
 vercel env add VITE_SUPABASE_URL
 vercel env add VITE_SUPABASE_ANON_KEY
-vercel env add GEMINI_API_KEY
+vercel env add OPENAI_API_KEY
 
 # 프로덕션 배포
 vercel --prod

@@ -1,336 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
-import { HOOK_TYPE_INFO, type HookType } from '../hooks/useMarketingHooks';
+import { HOOK_TYPE_INFO, TRIGGER_INFO, type HookType, type TriggerType } from '../hooks/useMarketingHooks';
 import { supabase } from '../config/supabase';
 import { getAppIcon } from '../utils/appIcons';
 
-// 참조 메시지 타입
-interface ReferenceFromFeed {
-    app_name: string;
-    title: string | null;
-    body: string | null;
-    category: string;
-}
+// ==========================================
+// 1. 타입 정의
+// ==========================================
+type PurposeId = 'PROMO' | 'NEWS' | 'RECOVERY' | 'VALUE';
 
-// ============================================
-// 앱 카테고리 정의 (확장 가능한 구조)
-// ============================================
-interface AppCategory {
-    id: string;
-    name: string;
-    emoji: string;
-    description: string;
-    apps: string[]; // 수집 중인 앱 목록
-    status: 'active' | 'collecting' | 'planned'; // 데이터 수집 상태
-}
-
-const APP_CATEGORIES: AppCategory[] = [
-    {
-        id: 'fashion',
-        name: '패션',
-        emoji: '👗',
-        description: '의류, 신발, 액세서리, 스트릿웨어',
-        apps: ['무신사', '29CM', '지그재그', '에이블리', 'LookPin', 'EQL', '4910'],
-        status: 'active',
-    },
-    {
-        id: 'beauty',
-        name: '뷰티',
-        emoji: '💄',
-        description: '화장품, 스킨케어, 시술',
-        apps: ['화해', '강남언니'],
-        status: 'active',
-    },
-    {
-        id: 'ecommerce',
-        name: '종합몰',
-        emoji: '🛒',
-        description: '식품, 생활용품, 가구, 인테리어',
-        apps: ['쿠팡', '컬리', 'N+스토어', '오늘의집'],
-        status: 'active',
-    },
-    {
-        id: 'resale',
-        name: '중고/리셀',
-        emoji: '♻️',
-        description: '중고거래, 리셀, 경매',
-        apps: ['번개장터'],
-        status: 'active',
-    },
-    {
-        id: 'travel',
-        name: '여행/숙박',
-        emoji: '✈️',
-        description: '항공, 호텔, 액티비티, 렌터카',
-        apps: ['마이리얼트립', 'NOL(야놀자)', '여기어때', 'KLOOK', 'Trip.com', '트리플'],
-        status: 'active',
-    },
-    {
-        id: 'food',
-        name: 'F&B/배달',
-        emoji: '🍔',
-        description: '음식 배달, 프랜차이즈, 카페',
-        apps: ['배달의민족', '쿠팡이츠', '롯데잇츠'],
-        status: 'active',
-    },
-    {
-        id: 'content',
-        name: '콘텐츠/웹툰',
-        emoji: '📖',
-        description: '웹툰, 웹소설, OTT',
-        apps: ['카카오페이지', '시리즈'],
-        status: 'active',
-    },
-    {
-        id: 'sns',
-        name: 'SNS/소셜',
-        emoji: '📱',
-        description: '소셜미디어, 커뮤니티',
-        apps: ['TikTok'],
-        status: 'active',
-    },
-    {
-        id: 'game',
-        name: '게임',
-        emoji: '🎮',
-        description: '모바일 게임, AR 게임',
-        apps: ['Pokémon GO'],
-        status: 'active',
-    },
-    {
-        id: 'education',
-        name: '교육/자기계발',
-        emoji: '📚',
-        description: '어학, 자격증, 온라인 강의',
-        apps: ['듀오링고', 'Cake'],
-        status: 'active',
-    },
-    {
-        id: 'finance',
-        name: '금융/핀테크',
-        emoji: '💳',
-        description: '은행, 증권, 간편결제',
-        apps: ['토스', '페이북/ISP'],
-        status: 'active',
-    },
-    {
-        id: 'mobility',
-        name: '모빌리티',
-        emoji: '🚗',
-        description: '택시, 대리, 공유 모빌리티',
-        apps: ['Uber'],
-        status: 'active',
-    },
-    {
-        id: 'health',
-        name: '헬스/의료',
-        emoji: '🏥',
-        description: '병원 예약, 피트니스, 건강관리',
-        apps: ['굿닥'],
-        status: 'active',
-    },
-];
-
-// ============================================
-// 카테고리별 목적 옵션
-// ============================================
-interface PurposeOption {
-    id: string;
-    name: string;
-    emoji: string;
-    description: string;
-}
-
-const PURPOSE_BY_CATEGORY: Record<string, PurposeOption[]> = {
-    fashion: [
-        { id: 'promo', name: '프로모션/할인', emoji: '🏷️', description: '세일, 쿠폰, 특가 알림' },
-        { id: 'newproduct', name: '신상품 출시', emoji: '✨', description: '신상, 시즌 컬렉션 알림' },
-        { id: 'restock', name: '재입고 알림', emoji: '🔔', description: '품절 상품 재입고' },
-        { id: 'retention', name: '재방문 유도', emoji: '💕', description: '장바구니, 찜한 상품' },
-    ],
-    beauty: [
-        { id: 'promo', name: '프로모션/할인', emoji: '🏷️', description: '세일, 쿠폰, 특가 알림' },
-        { id: 'newproduct', name: '신상품 출시', emoji: '✨', description: '신제품, 한정판 출시' },
-        { id: 'review', name: '리뷰/랭킹', emoji: '⭐', description: '인기 상품, 리뷰 랭킹' },
-        { id: 'retention', name: '재구매 유도', emoji: '💄', description: '루틴 리마인드, 재구매' },
-    ],
-    ecommerce: [
-        { id: 'promo', name: '프로모션/할인', emoji: '🏷️', description: '세일, 쿠폰, 적립금' },
-        { id: 'newproduct', name: '신상품/입고', emoji: '📦', description: '신규 입점, 새 상품' },
-        { id: 'retention', name: '재방문 유도', emoji: '💕', description: '장바구니, 찜, 재구매' },
-        { id: 'delivery', name: '배송/주문', emoji: '🚚', description: '배송 시작, 도착 예정' },
-    ],
-    resale: [
-        { id: 'pricedrop', name: '가격 하락', emoji: '📉', description: '관심 상품 가격 변동' },
-        { id: 'newlisting', name: '새 매물 알림', emoji: '🆕', description: '관심 키워드 새 상품' },
-        { id: 'chat', name: '채팅/거래', emoji: '💬', description: '채팅, 거래 요청 알림' },
-        { id: 'event', name: '이벤트/혜택', emoji: '🎁', description: '수수료 할인, 이벤트' },
-    ],
-    travel: [
-        { id: 'promo', name: '특가 항공/숙소', emoji: '✈️', description: '얼리버드, 땡처리 특가' },
-        { id: 'pricedrop', name: '가격 변동 알림', emoji: '📉', description: '관심 여행지 가격 하락' },
-        { id: 'retention', name: '예약 리마인드', emoji: '📅', description: '미완료 예약, 출발 임박' },
-        { id: 'destination', name: '여행지 추천', emoji: '🌴', description: '인기/추천 여행지' },
-    ],
-    food: [
-        { id: 'promo', name: '할인/쿠폰', emoji: '🎟️', description: '배달비 무료, % 할인' },
-        { id: 'newmenu', name: '신메뉴 출시', emoji: '🍽️', description: '신메뉴, 시즌 메뉴' },
-        { id: 'retention', name: '재주문 유도', emoji: '🔄', description: '자주 시킨 메뉴, 리오더' },
-        { id: 'event', name: '이벤트/캠페인', emoji: '🎉', description: '콜라보, 한정 이벤트' },
-    ],
-    content: [
-        { id: 'newcontent', name: '새 콘텐츠', emoji: '🆕', description: '신규 에피소드, 업데이트' },
-        { id: 'recommendation', name: '추천 콘텐츠', emoji: '👍', description: '맞춤 추천, 인기 콘텐츠' },
-        { id: 'retention', name: '이어보기', emoji: '▶️', description: '중단한 콘텐츠 리마인드' },
-        { id: 'event', name: '이벤트/혜택', emoji: '🎁', description: '무료 이용권, 캠페인' },
-    ],
-    sns: [
-        { id: 'engagement', name: '반응 알림', emoji: '❤️', description: '좋아요, 댓글, 팔로우' },
-        { id: 'trending', name: '트렌딩/추천', emoji: '🔥', description: '인기 콘텐츠, 추천 영상' },
-        { id: 'retention', name: '접속 유도', emoji: '👋', description: '오랜만에 방문, 새 소식' },
-        { id: 'live', name: '라이브/실시간', emoji: '🔴', description: '라이브 시작, 실시간 알림' },
-    ],
-    game: [
-        { id: 'event', name: '이벤트/보상', emoji: '🎁', description: '출석 보상, 이벤트 시작' },
-        { id: 'energy', name: '에너지/자원', emoji: '⚡', description: '스태미나 충전, 자원 회복' },
-        { id: 'update', name: '업데이트', emoji: '🆕', description: '새 콘텐츠, 시즌 시작' },
-        { id: 'social', name: '소셜/길드', emoji: '👥', description: '친구 활동, 길드 알림' },
-    ],
-    education: [
-        { id: 'promo', name: '할인/이벤트', emoji: '🏷️', description: '강의 할인, 프로모션' },
-        { id: 'newcourse', name: '신규 강의', emoji: '📖', description: '새 강의, 커리큘럼' },
-        { id: 'retention', name: '학습 리마인드', emoji: '⏰', description: '미완료 강의, 복습' },
-        { id: 'achievement', name: '목표 달성', emoji: '🏆', description: '연속 학습, 배지 획득' },
-    ],
-    finance: [
-        { id: 'transaction', name: '거래 알림', emoji: '💸', description: '입출금, 결제 알림' },
-        { id: 'benefit', name: '혜택/이벤트', emoji: '🎁', description: '캐시백, 포인트 적립' },
-        { id: 'product', name: '금융 상품', emoji: '📊', description: '적금, 대출, 투자 상품' },
-        { id: 'reminder', name: '리마인더', emoji: '🔔', description: '납부일, 만기일 알림' },
-    ],
-    mobility: [
-        { id: 'promo', name: '할인/쿠폰', emoji: '🎟️', description: '탑승 할인, 첫 이용 쿠폰' },
-        { id: 'status', name: '탑승 알림', emoji: '🚗', description: '배차 완료, 도착 예정' },
-        { id: 'suggestion', name: '이동 제안', emoji: '📍', description: '퇴근길 추천, 자주 가는 곳' },
-        { id: 'event', name: '이벤트', emoji: '🎉', description: '특별 이벤트, 프로모션' },
-    ],
-    health: [
-        { id: 'appointment', name: '예약 알림', emoji: '📅', description: '진료 예약, 건강검진' },
-        { id: 'activity', name: '활동 알림', emoji: '🏃', description: '걸음 수, 운동 목표' },
-        { id: 'retention', name: '복약/관리', emoji: '💊', description: '복약 리마인드, 건강 팁' },
-        { id: 'achievement', name: '목표 달성', emoji: '🎯', description: '목표 달성, 동기부여' },
-    ],
-};
-
-// 기본 목적 (카테고리 매핑 없을 때)
-const DEFAULT_PURPOSE: PurposeOption[] = [
-    { id: 'promo', name: '프로모션/할인', emoji: '🏷️', description: '세일, 쿠폰, 특가 알림' },
-    { id: 'product', name: '상품/서비스 소개', emoji: '🛍️', description: '신상품, 추천 상품' },
-    { id: 'retention', name: '재방문 유도', emoji: '💕', description: '장바구니, 미완료 작업' },
-    { id: 'event', name: '이벤트/캠페인', emoji: '🎉', description: '특별 이벤트, 시즌 캠페인' },
-];
-
-// ============================================
-// 톤 옵션 (공통)
-// ============================================
-const TONE_OPTIONS = [
-    { id: 'friendly', name: '친근한', emoji: '😊', example: '~해볼래요?' },
-    { id: 'urgent', name: '긴박한', emoji: '🔥', example: '지금 바로! 마감 임박!' },
-    { id: 'playful', name: '재미있는', emoji: '🎮', example: '두근두근~ 열어보세요!' },
-    { id: 'premium', name: '프리미엄', emoji: '✨', example: '특별히 선보이는' },
-];
-
-// 카테고리+목적별 placeholder 예시
-const PLACEHOLDER_EXAMPLES: Record<string, Record<string, { product: string; benefit: string }>> = {
-    fashion: {
-        promo: { product: '봄 신상 원피스, 나이키 덩크', benefit: '최대 70% 할인, 오늘만 쿠폰' },
-        newproduct: { product: '25SS 신상 컬렉션, 콜라보 스니커즈', benefit: '단독 선발매, 100장 한정' },
-        restock: { product: '품절됐던 그 후드티, 인기 사이즈', benefit: '지금 바로 구매 가능' },
-        retention: { product: '찜해둔 가디건, 장바구니 아이템', benefit: '가격 인하, 마지막 재고' },
-    },
-    beauty: {
-        promo: { product: '인기 선크림, 베스트 토너', benefit: '1+1, 30% 할인' },
-        newproduct: { product: '신규 런칭 세럼, 콜라보 팔레트', benefit: '사전예약 특가, 증정품' },
-        review: { product: '리뷰 1만개 파운데이션', benefit: '평점 4.9 인증, 민감성 추천' },
-        retention: { product: '루틴 세럼 재구매', benefit: '자동결제 10% 할인' },
-    },
-    ecommerce: {
-        promo: { product: '오늘의 특가 식품, 생필품', benefit: '첫구매 5천원 할인, 무료배송' },
-        newproduct: { product: '신규 입점 브랜드, 프리미엄 식품', benefit: '런칭 기념 할인' },
-        retention: { product: '장바구니에 담은 상품', benefit: '재고 소진 임박, 10% 쿠폰' },
-        delivery: { product: '주문하신 상품', benefit: '오늘 도착 예정' },
-    },
-    travel: {
-        promo: { product: '오사카 3박4일, 제주 리조트', benefit: '얼리버드 40% 할인' },
-        pricedrop: { product: '찜한 도쿄 호텔', benefit: '2만원 인하, 최저가 보장' },
-        retention: { product: '예약 중이던 발리 여행', benefit: '좌석 3자리 남음' },
-        destination: { product: '2월 인기 여행지', benefit: '벚꽃 시즌 특가' },
-    },
-    food: {
-        promo: { product: '치킨, 피자 브랜드', benefit: '배달비 무료, 3천원 할인' },
-        newmenu: { product: '신메뉴 버거, 시즌 음료', benefit: '한정 출시, 첫 주문 무료' },
-        retention: { product: '자주 시킨 떡볶이집', benefit: '재주문 쿠폰 도착' },
-        event: { product: '브랜드 콜라보 세트', benefit: '선착순 100명 굿즈 증정' },
-    },
-    content: {
-        newcontent: { product: '인기 웹툰 신규 회차', benefit: '지금 무료로 보기' },
-        recommendation: { product: '취향 저격 신작 웹소설', benefit: '1~3화 무료 공개' },
-        retention: { product: '보다 멈춘 작품', benefit: '이어보기 리마인드' },
-        event: { product: '전작 정주행 이벤트', benefit: '전편 무료 쿠폰' },
-    },
-    sns: {
-        engagement: { product: '내 영상 반응', benefit: '좋아요 1000개 돌파' },
-        trending: { product: '지금 뜨는 챌린지', benefit: '참여하고 선물 받기' },
-        retention: { product: '새로운 팔로워 소식', benefit: '3일간 못 본 피드' },
-        live: { product: '팔로우한 크리에이터', benefit: '지금 라이브 중' },
-    },
-    game: {
-        event: { product: '출석 체크 보상', benefit: '7일 연속 다이아 100개' },
-        energy: { product: '스태미나 풀 충전', benefit: '지금 접속하면 보너스' },
-        update: { product: '새 시즌 업데이트', benefit: '신규 캐릭터 출시' },
-        social: { product: '길드 레이드', benefit: '30분 후 시작' },
-    },
-    education: {
-        promo: { product: '베스트 영어 강의', benefit: '50% 할인 마감 D-3' },
-        newcourse: { product: '신규 토익 클래스', benefit: '오픈 기념 30% 할인' },
-        retention: { product: '듣다 멈춘 강의', benefit: '복습 퀴즈 도착' },
-        achievement: { product: '연속 학습 7일', benefit: '배지 획득, 할인 쿠폰' },
-    },
-    finance: {
-        transaction: { product: '계좌 입금/출금', benefit: '50,000원 입금 완료' },
-        benefit: { product: '이번 달 캐시백', benefit: '12,000원 적립 완료' },
-        product: { product: '연 5% 적금 상품', benefit: '가입 즉시 만원 지급' },
-        reminder: { product: '카드 결제일', benefit: '내일 자동 결제 예정' },
-    },
-    mobility: {
-        promo: { product: '첫 탑승 쿠폰', benefit: '5,000원 할인' },
-        status: { product: '호출한 차량', benefit: '3분 후 도착 예정' },
-        suggestion: { product: '퇴근길 추천', benefit: '지금 택시 대기 없음' },
-        event: { product: '금요일 이벤트', benefit: '야간 20% 할인' },
-    },
-    health: {
-        appointment: { product: '내일 진료 예약', benefit: '오전 10시 피부과' },
-        activity: { product: '오늘 걸음 수', benefit: '8,000보 달성, 2,000보 남음' },
-        retention: { product: '복약 시간', benefit: '비타민 먹을 시간이에요' },
-        achievement: { product: '주간 운동 목표', benefit: '달성! 배지 획득' },
-    },
-    resale: {
-        pricedrop: { product: '찜한 나이키 덩크', benefit: '3만원 가격 인하' },
-        newlisting: { product: '관심 키워드 새 상품', benefit: '방금 등록된 매물' },
-        chat: { product: '판매 중인 상품', benefit: '구매 희망 채팅 도착' },
-        event: { product: '수수료 무료 이벤트', benefit: '이번 주말만 0%' },
-    },
-};
-
-// ============================================
-// 타입 정의
-// ============================================
 interface GeneratedMessage {
     title: string;
     body: string;
     hook: string;
     hookType: HookType;
+    style?: string;
+    angle?: string;
 }
 
 interface ReferenceMessage {
@@ -342,143 +27,377 @@ interface ReferenceMessage {
     hook_type: HookType;
 }
 
-// ============================================
-// 메인 컴포넌트
-// ============================================
-export const Generate: React.FC = () => {
-    const location = useLocation();
-    const referenceFromFeed = (location.state as { referenceMessage?: ReferenceFromFeed })?.referenceMessage;
+// ==========================================
+// 2. 앱 카테고리 정의
+// ==========================================
+interface AppCategory {
+    id: string;
+    name: string;
+    emoji: string;
+    description: string;
+    apps: string[];
+}
 
-    // Step 0: 앱 카테고리
+const APP_CATEGORIES: AppCategory[] = [
+    { id: 'fashion', name: '패션/뷰티', emoji: '👗', description: '의류, 신발, 화장품, 액세서리', apps: ['무신사', '29CM', '지그재그', '에이블리', 'LookPin', 'EQL', '4910', '화해', '강남언니'] },
+    { id: 'ecommerce', name: '종합 이커머스', emoji: '🛒', description: '식품, 생활용품, 가구, 인테리어', apps: ['쿠팡', '컬리', 'N+스토어', '오늘의집', '번개장터'] },
+    { id: 'travel', name: '여행/숙박', emoji: '✈️', description: '항공, 호텔, 액티비티, 렌터카', apps: ['마이리얼트립', 'NOL(야놀자)', '여기어때', 'KLOOK', 'Trip.com', '트리플'] },
+    { id: 'mobility', name: '모빌리티/교통', emoji: '🚕', description: '택시, 대리, 렌터카, 이동 서비스', apps: ['Uber'] },
+    { id: 'food', name: 'F&B/배달', emoji: '🍔', description: '음식 배달, 프랜차이즈, 카페', apps: ['배달의민족', '쿠팡이츠', '롯데잇츠'] },
+    { id: 'content', name: '콘텐츠/엔터', emoji: '🎬', description: '웹툰, OTT, 음악, 숏폼', apps: ['카카오페이지', '시리즈', 'TikTok'] },
+    { id: 'game', name: '게임', emoji: '🎮', description: '모바일 게임, 캐주얼 게임, RPG', apps: ['Pokémon GO'] },
+    { id: 'education', name: '교육/자기계발', emoji: '📚', description: '어학, 자격증, 온라인 강의', apps: ['듀오링고', 'Cake'] },
+    { id: 'finance', name: '금융/핀테크', emoji: '💳', description: '은행, 증권, 간편결제', apps: ['토스', '페이북/ISP'] },
+    { id: 'health', name: '헬스/의료', emoji: '🏥', description: '병원 예약, 피트니스, 건강관리', apps: ['굿닥'] },
+];
+
+// ==========================================
+// 3. 목적별 설정 (MECE 분류)
+// ==========================================
+const PURPOSE_CONFIG: Record<PurposeId, { name: string; emoji: string; desc: string }> = {
+    PROMO: { name: '혜택/특가', emoji: '💰', desc: '할인, 쿠폰, 타임세일, 최저가 알림' },
+    NEWS: { name: '신상/소식', emoji: '🆕', desc: '신제품 출시, 재입고, 업데이트 소식' },
+    RECOVERY: { name: '미완료/리마인드', emoji: '🔔', desc: '장바구니, 포인트 소멸, 미결제 확인' },
+    VALUE: { name: '추천/발견', emoji: '🔍', desc: '취향 맞춤 추천, 랭킹, 큐레이션' },
+};
+
+// 목적별 추천 전략 매핑
+const STRATEGIES_BY_PURPOSE: Record<PurposeId, HookType[]> = {
+    PROMO: ['price', 'urgency', 'benefit', 'newness', 'social_proof', 'curiosity'],
+    NEWS: ['newness', 'curiosity', 'social_proof', 'personal', 'price', 'benefit'],
+    RECOVERY: ['personal', 'urgency', 'benefit', 'social_proof', 'curiosity', 'newness'],
+    VALUE: ['social_proof', 'personal', 'curiosity', 'newness', 'benefit', 'urgency'],
+};
+
+// 전략 → 심리 트리거 매핑
+const STRATEGY_TRIGGER_MAP: Record<HookType, TriggerType> = {
+    price: 'greed',
+    urgency: 'urgency',
+    personal: 'personalization',
+    curiosity: 'curiosity',
+    newness: 'novelty',
+    social_proof: 'social_proof',
+    benefit: 'greed',
+    content: 'relevance',
+    event: 'fun',
+    community: 'social_proof',
+    other: 'none',
+};
+
+// ==========================================
+// 4. 톤 옵션
+// ==========================================
+const TONE_OPTIONS = [
+    { id: 'friendly', name: '친근/공감', emoji: '😊', desc: '친구에게 말하듯 부드럽게', example: '이거 완전 찰떡일 것 같아요 💕' },
+    { id: 'direct', name: '간결/직관', emoji: '🎯', desc: '군더더기 없이 핵심만', example: '주문하신 상품이 발송되었습니다.' },
+    { id: 'witty', name: '재치/유머', emoji: '✨', desc: '센스 있는 드립', example: '이 가격 실화? 담당자 실수인듯 ㅋㅋ' },
+    { id: 'polite', name: '정중/신뢰', emoji: '👔', desc: '예의 바르고 신뢰감', example: '소중한 고객님을 위한 특별한 혜택입니다.' },
+];
+
+// ==========================================
+// 5. 전략별 설명 문구 (동어반복 피하기)
+// ==========================================
+const STRATEGY_DESCRIPTIONS: Record<HookType, string> = {
+    price: '"이 가격에 살 수 있다고?" 합리적 소비 욕구를 자극해요.',
+    urgency: '"지금 아니면 못 산다!" 즉각적인 행동을 유도해요.',
+    personal: '"나만을 위한 추천이네?" 특별함을 느끼게 해요.',
+    curiosity: '"뭐지? 궁금해!" 클릭하고 싶은 충동을 만들어요.',
+    newness: '"새로 나왔대!" 트렌드에 뒤처지기 싫은 심리를 건드려요.',
+    social_proof: '"다들 사나봐" 검증된 선택이라는 안심을 줘요.',
+    benefit: '"덤으로 이것까지?" 얻는 게 많다는 느낌을 줘요.',
+    content: '유용한 정보로 자연스럽게 관심을 끌어요.',
+    event: '참여하고 싶은 재미를 제공해요.',
+    community: '소속감과 연결의 욕구를 자극해요.',
+    other: '다양한 심리 요소를 활용해요.',
+};
+
+const REFERENCE_MESSAGE_LIMIT = 20;
+
+function pickBySeed(items: string[], seed: number): string {
+    if (items.length === 0) return '';
+    let hash = seed >>> 0;
+    for (let i = 0; i < items.length; i++) {
+        hash = (hash * 33 + items[i].charCodeAt(0)) >>> 0;
+    }
+    return items[hash % items.length];
+}
+
+// ==========================================
+// 6. 목적별 입력 가이드 & 칩
+// ==========================================
+const INPUT_GUIDES: Record<PurposeId, {
+    targetPlaceholder: string;
+    targetPlaceholderVariants?: string[];
+    targetChips: string[];
+    productPlaceholder: string;
+    productPlaceholderVariants?: string[];
+    productChips: string[];
+    benefitPlaceholder: string;
+    benefitPlaceholderVariants?: string[];
+    benefitChips: string[];
+}> = {
+    PROMO: {
+        targetPlaceholder: '예: 장바구니에 담고 결제 안 한 유저',
+        targetPlaceholderVariants: ['예: 최근 7일 내 상품 조회 후 이탈한 유저', '예: 쿠폰 발급 후 미사용 고객', '예: 재방문 빈도가 높은 VIP 고객'],
+        targetChips: ['전체 회원', 'VIP 고객', '휴면 회원', '첫 구매 유저', '재구매 고객', '앱 미설치자', '쿠폰 보유 고객', '최근 이탈 고객', '장바구니 보유 고객', '앱 푸시 동의 고객'],
+        productPlaceholder: '예: 설맞이 특가 모음집, 한우 선물세트',
+        productPlaceholderVariants: ['예: 주말 한정 타임딜 상품', '예: 시즌오프 아우터 모음', '예: 브랜드 위크 특가 상품'],
+        productChips: ['시즌 세일', '브랜드 특가', '타임딜 상품', '베스트셀러', '신상품 할인', '카테고리 특가', '원플원 상품', '선물세트', '주말 특가', '오늘의 추천'],
+        benefitPlaceholder: '예: 최대 50% 쿠폰 즉시 지급',
+        benefitPlaceholderVariants: ['예: 결제 시 즉시 10% 추가 할인', '예: 구매 금액대별 쿠폰 자동 적용', '예: 적립금 더블 적립 이벤트'],
+        benefitChips: ['최대 50% 할인', '1만원 쿠폰', '무료배송', '적립금 2배', '선착순 100명', '오늘만 특가', '추가 10% 할인', '사은품 증정', '카드사 할인', '첫 구매 쿠폰', '묶음 구매 할인', '즉시 할인'],
+    },
+    NEWS: {
+        targetPlaceholder: '예: 브랜드 찜한 유저, 관심 카테고리 구독자',
+        targetPlaceholderVariants: ['예: 신상품 알림 구독 고객', '예: 최근 30일 내 브랜드 방문 고객', '예: 컬렉션 공개 알림 신청자'],
+        targetChips: ['브랜드 팬', '카테고리 관심자', '알림 수신 동의자', '최근 방문자', '위시리스트 유저', '신상품 알림 구독자', '콜라보 관심자', '런칭 페이지 방문자', '재입고 대기 고객', '콘텐츠 구독자'],
+        productPlaceholder: '예: 반스 메탈 컬렉션, 뉴발란스 하트 라인',
+        productPlaceholderVariants: ['예: 단독 런칭 컬렉션', '예: 재입고 예정 인기 제품', '예: 신규 브랜드 입점 라인업'],
+        productChips: ['신상품', '한정판', '콜라보', '시즌 컬렉션', '단독 발매', '재입고 상품', '신규 입점', '룩북 공개', '프리오더', '라이브 특집'],
+        benefitPlaceholder: '예: 무신사 단독 발매, 2차 라인업 오픈',
+        benefitPlaceholderVariants: ['예: 런칭 첫 주 한정 혜택', '예: 사전 알림 신청자 우선 공개', '예: 입점 기념 쿠폰 즉시 지급'],
+        benefitChips: ['단독 선발매', '사전 예약 오픈', '얼리버드 특가', '런칭 기념 쿠폰', '한정 수량', '컬렉션 공개', '재입고 알림', '시즌 오픈', '첫 공개 특전', '입점 기념 혜택', '프리오더 혜택', '라이브 한정 혜택'],
+    },
+    RECOVERY: {
+        targetPlaceholder: '예: 장바구니 이탈자, 결제 미완료 유저',
+        targetPlaceholderVariants: ['예: 결제 단계에서 이탈한 고객', '예: 쿠폰 만료 임박 고객', '예: 최근 관심 상품 재방문 고객'],
+        targetChips: ['장바구니 이탈자', '찜만 한 유저', '검색만 한 유저', '앱 미접속 7일', '쿠폰 미사용자', '포인트 소멸 예정자', '최근 3일 이탈자', '결제 직전 이탈자', '가격 비교 고객', '재방문 고객'],
+        productPlaceholder: '예: 장바구니 담은 상품, 찜한 숙소',
+        productPlaceholderVariants: ['예: 결제 직전까지 본 상품', '예: 관심 등록한 숙소/상품', '예: 최근 조회한 카테고리 상품'],
+        productChips: ['장바구니 상품', '찜한 상품', '최근 본 상품', '비교한 상품', '검색한 상품', '재입고 상품', '가격 인하 상품', '옵션 재고 확보 상품', '유사 추천 상품', '관심 카테고리 상품'],
+        benefitPlaceholder: '예: 쿠폰이 2일 뒤 사라져요',
+        benefitPlaceholderVariants: ['예: 오늘 자정 전 결제 시 추가 할인', '예: 포인트 소멸 전 사용 가능', '예: 재입고 기념 한정 쿠폰'],
+        benefitChips: ['2일 뒤 소멸', '품절 임박', '재고 3개 남음', '가격 인상 예정', '딱 24시간', '마지막 기회', '곧 종료', '지금 결제 시 추가 할인', '소멸 예정 포인트', '주말 한정 쿠폰', '배송비 무료', '즉시 복귀 혜택'],
+    },
+    VALUE: {
+        targetPlaceholder: '예: 20대 여성, 운동 관심 유저',
+        targetPlaceholderVariants: ['예: 출근길에 앱을 자주 여는 고객', '예: 주말 레저/여행 관심 고객', '예: 라이프스타일 콘텐츠 관심 고객'],
+        targetChips: ['20대 여성', '30대 직장인', '신혼부부', '자취생', '운동러', '뷰티 관심자', '맛집 탐방러', '여행 관심자', '가성비 선호층', '프리미엄 선호층'],
+        productPlaceholder: '예: 성수동 핫플 모음, 살로몬 BEST SELLER',
+        productPlaceholderVariants: ['예: 이번 주 인기 급상승 리스트', '예: 에디터 큐레이션 모음', '예: 실시간 트렌드 아이템'],
+        productChips: ['인기 급상승', '베스트셀러', '에디터 픽', 'MD 추천', '숨은 맛집', '핫플 모음', '실시간 인기', '카테고리 추천', '트렌드 아이템', '입문자 추천'],
+        benefitPlaceholder: '예: 후기 1천개 돌파, 담당자 강력 추천',
+        benefitPlaceholderVariants: ['예: 최근 후기 급증, 만족도 상위권', '예: 실시간 인기 순위 상위', '예: 재구매율 높은 추천 아이템'],
+        benefitChips: ['후기 1천개 돌파', '재구매율 1위', 'MD 강력 추천', '실시간 랭킹 1위', '평점 4.9', '좋아요 급상승', '이번 주 BEST', '찜 1만 돌파', '구매 전환율 상위', '리뷰 평점 우수', '추천 순위 급상승', '커뮤니티 인기'],
+    },
+};
+
+const CATEGORY_PRODUCT_PLACEHOLDER_HINTS: Record<string, Partial<Record<PurposeId, string[]>>> = {
+    fashion: {
+        PROMO: ['예: 봄 아우터 특가, 데님 컬렉션 할인', '예: 신상 스니커즈 타임세일, 브랜드 위크'],
+        NEWS: ['예: 25SS 신상 컬렉션, 한정 드롭 라인'],
+        RECOVERY: ['예: 장바구니 속 원피스, 찜한 자켓'],
+        VALUE: ['예: 에디터 추천 코디, 실시간 인기 룩'],
+    },
+    ecommerce: {
+        PROMO: ['예: 리빙 특가 모음, 주방 가전 타임딜'],
+    },
+    travel: {
+        PROMO: ['예: 제주 숙소 특가, 주말 항공권 할인'],
+    },
+};
+
+// ==========================================
+// 6. 메인 컴포넌트
+// ==========================================
+export const Generate: React.FC = () => {
+    // 상태
     const [appCategory, setAppCategory] = useState<string | null>(null);
-    // Step 1~4
-    const [step, setStep] = useState(0);
-    const [purpose, setPurpose] = useState<string | null>(null);
+    const [step, setStep] = useState(1);
+    const [purpose, setPurpose] = useState<PurposeId | null>(null);
     const [strategy, setStrategy] = useState<HookType | null>(null);
-    const [tone, setTone] = useState<string | null>(null);
+    const [tone, setTone] = useState<string>('friendly');
     const [productName, setProductName] = useState('');
     const [keyBenefit, setKeyBenefit] = useState('');
+    const [targetAudience, setTargetAudience] = useState('');
 
     // 참고 메시지
     const [referenceMessages, setReferenceMessages] = useState<ReferenceMessage[]>([]);
+    const [styleCorpusMessages, setStyleCorpusMessages] = useState<ReferenceMessage[]>([]);
     const [isLoadingRef, setIsLoadingRef] = useState(false);
+    const [isFallbackRef, setIsFallbackRef] = useState(false);
 
     // 생성 결과
     const [generatedMessages, setGeneratedMessages] = useState<GeneratedMessage[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Feed에서 넘어온 참조 메시지로 자동 선택
-    const [autoApplied, setAutoApplied] = useState(false);
-
     // 복사 토스트
     const [showCopyToast, setShowCopyToast] = useState(false);
-
-    const handleCopy = (title: string, body: string) => {
-        navigator.clipboard.writeText(`${title}\n${body}`);
-        setShowCopyToast(true);
-        setTimeout(() => setShowCopyToast(false), 2000);
-    };
-
-    useEffect(() => {
-        if (referenceFromFeed && !autoApplied) {
-            // 1. app_name으로 카테고리 찾기
-            const matchedCategory = APP_CATEGORIES.find(cat =>
-                cat.apps.some(app =>
-                    app.toLowerCase() === referenceFromFeed.app_name.toLowerCase() ||
-                    referenceFromFeed.app_name.toLowerCase().includes(app.toLowerCase())
-                )
-            );
-
-            if (matchedCategory) {
-                setAppCategory(matchedCategory.id);
-            }
-
-            // 2. category로 목적 매핑
-            const categoryToPurpose: Record<string, string> = {
-                'promo': 'promo',
-                'product': 'newproduct',
-                'retention': 'retention',
-                'system': 'delivery',
-                'transaction': 'transaction',
-            };
-
-            const mappedPurpose = categoryToPurpose[referenceFromFeed.category];
-            if (mappedPurpose) {
-                setPurpose(mappedPurpose);
-            }
-
-            // 3. 자동으로 적절한 단계로 이동
-            if (matchedCategory && mappedPurpose) {
-                setStep(2); // 전략 선택 단계로
-            } else if (matchedCategory) {
-                setStep(1); // 목적 선택 단계로
-            } else if (mappedPurpose) {
-                // 카테고리는 없지만 목적은 매핑됨 → 카테고리만 선택하면 됨
-                // 목적은 이미 설정되어 있으므로 step 0에서 카테고리 선택 후 바로 step 2로 갈 수 있음
-                setStep(0); // 카테고리 선택부터
-            }
-
-            setAutoApplied(true);
-        }
-    }, [referenceFromFeed, autoApplied]);
-
-    // 현재 카테고리의 목적 옵션
-    const purposeOptions = useMemo(() => {
-        if (!appCategory) return DEFAULT_PURPOSE;
-        return PURPOSE_BY_CATEGORY[appCategory] || DEFAULT_PURPOSE;
-    }, [appCategory]);
+    const [placeholderSeed, setPlaceholderSeed] = useState(() => Date.now());
 
     // 현재 카테고리 정보
     const currentCategory = useMemo(() => {
         return APP_CATEGORIES.find(c => c.id === appCategory);
     }, [appCategory]);
 
-    // Step 4 동적 placeholder 계산
-    const dynamicPlaceholder = useMemo(() => {
-        // 기본값
-        const defaultPlaceholder = {
-            product: '봄 신상 원피스, 제주 3박4일 패키지',
-            benefit: '50% 할인, 무료배송, 오늘만 특가',
+    const currentGuide = useMemo(() => {
+        if (!purpose) return null;
+        const guide = INPUT_GUIDES[purpose];
+        const categoryProductHints = appCategory
+            ? (CATEGORY_PRODUCT_PLACEHOLDER_HINTS[appCategory]?.[purpose] || [])
+            : [];
+        const targetPool = [guide.targetPlaceholder, ...(guide.targetPlaceholderVariants || [])];
+        const productPool = [...categoryProductHints, guide.productPlaceholder, ...(guide.productPlaceholderVariants || [])];
+        const benefitPool = [guide.benefitPlaceholder, ...(guide.benefitPlaceholderVariants || [])];
+
+        return {
+            ...guide,
+            targetPlaceholder: pickBySeed(targetPool, placeholderSeed + 11),
+            productPlaceholder: pickBySeed(productPool, placeholderSeed + 23),
+            benefitPlaceholder: pickBySeed(benefitPool, placeholderSeed + 37),
         };
+    }, [purpose, placeholderSeed, appCategory]);
 
-        // 카테고리+목적 기반 placeholder
-        if (appCategory && purpose) {
-            const categoryExample = PLACEHOLDER_EXAMPLES[appCategory]?.[purpose];
-            if (categoryExample) {
-                // 전략에 따라 혜택 문구 보강
-                let benefit = categoryExample.benefit;
-                if (strategy === 'urgency') {
-                    benefit = `${benefit}, 마감 임박`;
-                } else if (strategy === 'social_proof') {
-                    benefit = `${benefit}, 인기 1위`;
-                } else if (strategy === 'curiosity') {
-                    benefit = `비밀 혜택 공개`;
-                }
-
-                // 톤에 따라 스타일 힌트 추가
-                let product = categoryExample.product;
-                if (tone === 'playful') {
-                    product = `${product} 🎉`;
-                } else if (tone === 'premium') {
-                    product = `프리미엄 ${product}`;
-                }
-
-                return { product, benefit };
-            }
+    // 배열 랜덤 셔플 함수
+    const shuffleArray = <T,>(array: T[]): T[] => {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
+        return shuffled;
+    };
 
-        // 카테고리만 있는 경우 - 해당 카테고리의 첫 번째 목적 예시 사용
-        if (appCategory && PLACEHOLDER_EXAMPLES[appCategory]) {
-            const firstPurpose = Object.keys(PLACEHOLDER_EXAMPLES[appCategory])[0];
-            const example = PLACEHOLDER_EXAMPLES[appCategory][firstPurpose];
-            if (example) {
-                return example;
+    const countChars = (text: string) => Array.from((text || '').trim()).length;
+
+    // 참고 메시지 로드 (최근 1년 + 작년 동월 2개 우선)
+    const loadReferenceMessages = async (hookType: HookType, categoryId: string) => {
+        setIsLoadingRef(true);
+        setIsFallbackRef(false);
+        try {
+            const category = APP_CATEGORIES.find(c => c.id === categoryId);
+            const appNames = category?.apps || [];
+
+            const now = new Date();
+            const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString();
+
+            // 작년 동월 범위 (계절감 반영)
+            const lastYearSameMonthStart = new Date(now.getFullYear() - 1, now.getMonth(), 1).toISOString();
+            const lastYearSameMonthEnd = new Date(now.getFullYear() - 1, now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+
+            let seasonalMessages: ReferenceMessage[] = [];
+            let recentMessages: ReferenceMessage[] = [];
+
+            // 1. 작년 동월 메시지 (계절감) - 최대 2개
+            let seasonalQuery = supabase
+                .from('push_messages')
+                .select('id, app_name, title, body, marketing_hook, hook_type')
+                .eq('hook_type', hookType)
+                .not('marketing_hook', 'is', null)
+                .or('is_hidden.is.null,is_hidden.eq.false')
+                .gte('posted_at', lastYearSameMonthStart)
+                .lte('posted_at', lastYearSameMonthEnd)
+                .limit(20);
+
+            if (appNames.length > 0) {
+                seasonalQuery = seasonalQuery.in('app_name', appNames);
             }
-        }
 
-        return defaultPlaceholder;
-    }, [appCategory, purpose, strategy, tone]);
+            const { data: seasonalData } = await seasonalQuery;
+            if (seasonalData && seasonalData.length > 0) {
+                seasonalMessages = shuffleArray(seasonalData as ReferenceMessage[]).slice(0, 2);
+            }
+
+            // 2. 최근 1년 메시지 (작년 동월 제외) - 나머지 채우기
+            const seasonalIds = seasonalMessages.map(m => m.id);
+            const remainingCount = REFERENCE_MESSAGE_LIMIT - seasonalMessages.length;
+
+            let recentQuery = supabase
+                .from('push_messages')
+                .select('id, app_name, title, body, marketing_hook, hook_type')
+                .eq('hook_type', hookType)
+                .not('marketing_hook', 'is', null)
+                .or('is_hidden.is.null,is_hidden.eq.false')
+                .gte('posted_at', oneYearAgo)
+                .limit(60); // 랜덤 샘플링 위해 넉넉히
+
+            if (appNames.length > 0) {
+                recentQuery = recentQuery.in('app_name', appNames);
+            }
+
+            const { data: recentData, error } = await recentQuery;
+            if (error) throw error;
+
+            if (recentData && recentData.length > 0) {
+                // 이미 선택된 계절 메시지 제외 후 랜덤 샘플링
+                const filtered = (recentData as ReferenceMessage[]).filter(m => !seasonalIds.includes(m.id));
+                recentMessages = shuffleArray(filtered).slice(0, remainingCount);
+            }
+
+            // 3. 결과 합치기
+            const combined = [...seasonalMessages, ...recentMessages];
+
+            if (combined.length > 0) {
+                setReferenceMessages(combined);
+            } else {
+                // Fallback: 전체에서 (카테고리 무관)
+                const fallback = await supabase
+                    .from('push_messages')
+                    .select('id, app_name, title, body, marketing_hook, hook_type')
+                    .eq('hook_type', hookType)
+                    .not('marketing_hook', 'is', null)
+                    .or('is_hidden.is.null,is_hidden.eq.false')
+                    .gte('posted_at', oneYearAgo)
+                    .limit(40);
+
+                if (fallback.data && fallback.data.length > 0) {
+                    setReferenceMessages(shuffleArray(fallback.data as ReferenceMessage[]).slice(0, REFERENCE_MESSAGE_LIMIT));
+                    setIsFallbackRef(true);
+                } else {
+                    // 1년 내 데이터도 없으면 전체에서
+                    const anyData = await supabase
+                        .from('push_messages')
+                        .select('id, app_name, title, body, marketing_hook, hook_type')
+                        .eq('hook_type', hookType)
+                        .not('marketing_hook', 'is', null)
+                        .or('is_hidden.is.null,is_hidden.eq.false')
+                        .order('posted_at', { ascending: false })
+                        .limit(REFERENCE_MESSAGE_LIMIT);
+
+                    if (anyData.data && anyData.data.length > 0) {
+                        setReferenceMessages(shuffleArray(anyData.data as ReferenceMessage[]));
+                        setIsFallbackRef(true);
+                    } else {
+                        setReferenceMessages([]);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load references:', err);
+        } finally {
+            setIsLoadingRef(false);
+        }
+    };
+
+    // 스타일 코퍼스 로드 (카테고리 기준, 전략 무관)
+    const loadStyleCorpusMessages = async (categoryId: string) => {
+        try {
+            const category = APP_CATEGORIES.find(c => c.id === categoryId);
+            const appNames = category?.apps || [];
+            const oneYearAgo = new Date(new Date().getFullYear() - 1, new Date().getMonth(), new Date().getDate()).toISOString();
+
+            let query = supabase
+                .from('push_messages')
+                .select('id, app_name, title, body, marketing_hook, hook_type')
+                .not('marketing_hook', 'is', null)
+                .or('is_hidden.is.null,is_hidden.eq.false')
+                .gte('posted_at', oneYearAgo)
+                .limit(400);
+
+            if (appNames.length > 0) {
+                query = query.in('app_name', appNames);
+            }
+
+            const { data, error } = await query;
+            if (error) throw error;
+            const rows = (data || []) as ReferenceMessage[];
+            setStyleCorpusMessages(shuffleArray(rows).slice(0, 120));
+        } catch (err) {
+            console.error('Failed to load style corpus:', err);
+            setStyleCorpusMessages([]);
+        }
+    };
 
     // 전략 선택 시 참고 메시지 로드
     useEffect(() => {
@@ -487,529 +406,536 @@ export const Generate: React.FC = () => {
         }
     }, [strategy, appCategory]);
 
-    const loadReferenceMessages = async (hookType: HookType, categoryId: string) => {
-        setIsLoadingRef(true);
-        try {
-            const category = APP_CATEGORIES.find(c => c.id === categoryId);
-            const appNames = category?.apps || [];
+    useEffect(() => {
+        if (appCategory) loadStyleCorpusMessages(appCategory);
+    }, [appCategory]);
 
-            let query = supabase
-                .from('push_messages')
-                .select('id, app_name, title, body, marketing_hook, hook_type')
-                .eq('hook_type', hookType)
-                .not('marketing_hook', 'is', null)
-                .order('posted_at', { ascending: false })
-                .limit(10);
+    useEffect(() => {
+        if (purpose) setPlaceholderSeed(Date.now());
+    }, [purpose]);
 
-            // 해당 카테고리 앱 필터 (앱이 있을 때만)
-            if (appNames.length > 0) {
-                query = query.in('app_name', appNames);
-            }
-
-            const { data, error } = await query;
-            if (error) throw error;
-
-            // 카테고리 앱 데이터가 없으면 전체에서 가져오기
-            if (!data || data.length === 0) {
-                const fallback = await supabase
-                    .from('push_messages')
-                    .select('id, app_name, title, body, marketing_hook, hook_type')
-                    .eq('hook_type', hookType)
-                    .not('marketing_hook', 'is', null)
-                    .order('posted_at', { ascending: false })
-                    .limit(10);
-
-                setReferenceMessages(fallback.data || []);
-            } else {
-                setReferenceMessages(data);
-            }
-        } catch (err) {
-            console.error('Failed to load reference messages:', err);
-        } finally {
-            setIsLoadingRef(false);
-        }
-    };
-
+    // 메시지 생성
     const handleGenerate = async () => {
-        if (!appCategory || !purpose || !strategy || !tone) return;
+        if (!purpose || !strategy || !tone) return;
 
         setIsGenerating(true);
         setError(null);
 
         try {
+            // Edge Function 호출
             const response = await supabase.functions.invoke('generate-push-message', {
                 body: {
-                    appCategory,
-                    purpose,
+                    appCategory: currentCategory?.id || 'general',
+                    purpose: purpose.toLowerCase(),
                     strategy,
                     tone,
                     productName: productName || undefined,
                     keyBenefit: keyBenefit || undefined,
-                    referenceMessages: referenceMessages.slice(0, 5).map(m => ({
+                    targetAudience: targetAudience || undefined,
+                    referenceMessages: referenceMessages.slice(0, REFERENCE_MESSAGE_LIMIT).map(m => ({
                         title: m.title,
                         body: m.body,
                         hook: m.marketing_hook,
                     })),
+                    styleMessages: styleCorpusMessages.slice(0, 120).map(m => ({
+                        title: m.title,
+                        body: m.body,
+                        hook: m.marketing_hook,
+                    })),
+                    previousMessages: generatedMessages.map(m => ({
+                        title: m.title,
+                        body: m.body,
+                        angle: m.angle,
+                    })),
+                    generationNonce: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
                 },
             });
 
             if (response.error) throw response.error;
 
             setGeneratedMessages(response.data.messages || []);
-            setStep(5);
+            setStep(6);
         } catch (err) {
             setError(err instanceof Error ? err.message : '메시지 생성에 실패했습니다');
-            setStep(5);
+            setStep(6);
         } finally {
             setIsGenerating(false);
         }
     };
 
-    const canProceed = () => {
-        switch (step) {
-            case 0: return !!appCategory;
-            case 1: return !!purpose;
-            case 2: return !!strategy;
-            case 3: return !!tone;
-            case 4: return true;
-            default: return false;
+    // 칩 토글 (추가/제거)
+    const toggleChip = (
+        text: string,
+        currentValue: string,
+        setValue: React.Dispatch<React.SetStateAction<string>>
+    ) => {
+        const chips = currentValue.split(', ').filter(c => c.trim());
+        if (chips.includes(text)) {
+            // 제거
+            setValue(chips.filter(c => c !== text).join(', '));
+        } else {
+            // 추가
+            setValue(currentValue ? `${currentValue}, ${text}` : text);
         }
     };
 
-    const nextStep = () => {
-        if (canProceed() && step < 4) {
-            // 참조 메시지에서 목적이 이미 선택되어 있으면 step 1 건너뛰기
-            if (step === 0 && purpose) {
-                setStep(2); // 전략 선택으로 바로 이동
-            } else {
-                setStep(step + 1);
-            }
-        } else if (step === 4) {
-            handleGenerate();
-        }
+    // 복사
+    const handleCopy = (title: string, body: string) => {
+        navigator.clipboard.writeText(`${title}\n${body}`);
+        setShowCopyToast(true);
+        setTimeout(() => setShowCopyToast(false), 2000);
     };
 
-    const prevStep = () => {
-        if (step > 0) setStep(step - 1);
-    };
-
+    // 리셋
     const resetAll = () => {
-        setStep(0);
+        setStep(1);
         setAppCategory(null);
         setPurpose(null);
         setStrategy(null);
-        setTone(null);
+        setTone('friendly');
         setProductName('');
         setKeyBenefit('');
+        setTargetAudience('');
+        setPlaceholderSeed(Date.now());
         setGeneratedMessages([]);
         setReferenceMessages([]);
         setError(null);
     };
 
-    // 카테고리 변경 시 목적 초기화 (참조 메시지가 있고 목적이 이미 설정되어 있으면 유지)
-    const handleCategoryChange = (categoryId: string) => {
-        setAppCategory(categoryId);
-        // 참조 메시지에서 자동 선택된 목적은 유지
-        if (!referenceFromFeed || !purpose) {
-            setPurpose(null);
+    // 스텝 정보
+    const STEPS = [
+        { num: 1, label: '앱 종류' },
+        { num: 2, label: '목적' },
+        { num: 3, label: '전략' },
+        { num: 4, label: '톤' },
+        { num: 5, label: '상세' },
+    ];
+
+    // 다음 스텝으로 이동 가능 여부
+    const canGoNext = useMemo(() => {
+        switch (step) {
+            case 1: return !!appCategory;
+            case 2: return !!purpose;
+            case 3: return !!strategy;
+            case 4: return !!tone;
+            case 5: return true;
+            default: return false;
         }
+    }, [step, appCategory, purpose, strategy, tone]);
+
+    // 네비게이션
+    const goNext = () => {
+        if (step < 5 && canGoNext) setStep(step + 1);
+    };
+    const goPrev = () => {
+        if (step > 1) setStep(step - 1);
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-100 pb-32">
             <Navbar />
-            <main className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-                {/* 참조 메시지 배너 */}
-                {referenceFromFeed && (
-                    <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-2xl">
-                        <div className="flex items-start gap-3">
-                            <span className="text-2xl">📌</span>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-violet-800 mb-1">
-                                    "{referenceFromFeed.app_name}" 메시지를 참고합니다
-                                </p>
-                                {/* 자동 선택 상태 표시 */}
-                                <div className="flex flex-wrap gap-2 mb-2">
-                                    {appCategory ? (
-                                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
-                                            ✓ {currentCategory?.name} 카테고리
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">
-                                            ⚠ 카테고리 선택 필요
-                                        </span>
-                                    )}
-                                    {purpose ? (
-                                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
-                                            ✓ {purposeOptions.find(p => p.id === purpose)?.name || referenceFromFeed.category} 목적
-                                        </span>
-                                    ) : (
-                                        <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
-                                            목적 선택 필요
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="bg-white/60 rounded-lg p-2 text-xs text-gray-700">
-                                    {referenceFromFeed.title && (
-                                        <p className="font-medium truncate">{referenceFromFeed.title}</p>
-                                    )}
-                                    {referenceFromFeed.body && (
-                                        <p className="text-gray-500 truncate">{referenceFromFeed.body}</p>
-                                    )}
-                                </div>
-                            </div>
-                            <button
-                                onClick={resetAll}
-                                className="text-xs text-violet-600 hover:text-violet-800 underline flex-shrink-0"
-                            >
-                                처음부터
-                            </button>
-                        </div>
-                    </div>
-                )}
-
+            <div className="max-w-4xl mx-auto px-4 py-8 pt-24">
                 {/* 헤더 */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-black text-gray-900 mb-2">
-                        ✨ AI 메시지 추천
-                    </h1>
-                    <p className="text-gray-500">
-                        5단계로 완성하는 효과적인 푸시 메시지
-                    </p>
+                <div className="text-center mb-10">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">✨ AI 메시지 추천</h1>
+                    <p className="text-gray-500">5단계로 완성하는 효과적인 푸시 메시지</p>
                 </div>
 
-                {/* 진행 바 */}
-                {step < 5 && (
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between mb-2">
-                            {[0, 1, 2, 3, 4].map(s => (
-                                <div
-                                    key={s}
-                                    className={`
-                                        flex items-center justify-center w-9 h-9 rounded-full font-bold text-sm
-                                        transition-all duration-300
-                                        ${step >= s
-                                            ? 'bg-gray-900 text-white'
-                                            : 'bg-gray-200 text-gray-400'
-                                        }
-                                    `}
-                                >
-                                    {s}
-                                </div>
+                {/* 프로그레스 바 */}
+                {step < 6 && (
+                    <div className="mb-10">
+                        <div className="flex items-center justify-between">
+                            {STEPS.map((s, idx) => (
+                                <React.Fragment key={s.num}>
+                                    <button
+                                        onClick={() => s.num < step && setStep(s.num)}
+                                        disabled={s.num > step}
+                                        className={`
+                                            flex flex-col items-center gap-2 transition-all
+                                            ${s.num < step ? 'cursor-pointer' : s.num === step ? '' : 'opacity-40 cursor-not-allowed'}
+                                        `}
+                                    >
+                                        <div className={`
+                                            w-12 h-12 rounded-full flex items-center justify-center text-base font-bold transition-all
+                                            ${s.num < step
+                                                ? 'bg-amber-400 text-white'
+                                                : s.num === step
+                                                    ? 'bg-gray-900 text-white'
+                                                    : 'bg-gray-200 text-gray-500'
+                                            }
+                                        `}>
+                                            {s.num}
+                                        </div>
+                                        <span className={`text-sm ${s.num === step ? 'font-bold text-gray-900' : 'text-gray-500'}`}>
+                                            {s.label}
+                                        </span>
+                                    </button>
+                                    {idx < STEPS.length - 1 && (
+                                        <div className={`flex-1 h-1 mx-3 rounded-full ${s.num < step ? 'bg-amber-400' : 'bg-gray-200'}`} />
+                                    )}
+                                </React.Fragment>
                             ))}
-                        </div>
-                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-gray-900 transition-all duration-500"
-                                style={{ width: `${(step / 4) * 100}%` }}
-                            />
-                        </div>
-                        <div className="flex justify-between mt-2 text-xs text-gray-500">
-                            <span>앱 종류</span>
-                            <span>목적</span>
-                            <span>전략</span>
-                            <span>톤</span>
-                            <span>상세</span>
                         </div>
                     </div>
                 )}
 
-                {/* Step 0: 앱 카테고리 선택 */}
-                {step === 0 && (
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">
-                            0️⃣ 어떤 앱인가요?
+                {/* Step 0: 카테고리 선택 */}
+                {step === 1 && (
+                    <div className="animate-fade-in">
+                        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <span className="w-7 h-7 rounded-lg bg-gray-900 text-white text-sm flex items-center justify-center">1</span>
+                            어떤 앱인가요?
                         </h2>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             {APP_CATEGORIES.map(category => (
                                 <button
                                     key={category.id}
-                                    onClick={() => handleCategoryChange(category.id)}
-                                    disabled={category.status === 'planned'}
+                                    onClick={() => setAppCategory(category.id)}
                                     className={`
-                                        p-4 rounded-2xl text-left transition-all relative
+                                        relative p-5 rounded-2xl border-2 text-left transition-all bg-white
                                         ${appCategory === category.id
-                                            ? 'bg-gray-900 text-white ring-4 ring-gray-900/20'
-                                            : category.status === 'planned'
-                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : 'bg-white border border-gray-200 hover:border-gray-300 hover:shadow-md'
+                                            ? 'border-gray-900 shadow-lg'
+                                            : 'border-transparent hover:border-gray-200 hover:shadow-md'
                                         }
                                     `}
                                 >
-                                    {category.status === 'collecting' && (
-                                        <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">
-                                            수집중
-                                        </span>
-                                    )}
-                                    {category.status === 'planned' && (
-                                        <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 bg-gray-200 text-gray-500 rounded">
-                                            예정
-                                        </span>
-                                    )}
-                                    <span className="text-2xl mb-2 block">{category.emoji}</span>
-                                    <h3 className={`font-bold text-sm ${appCategory === category.id ? 'text-white' : category.status === 'planned' ? 'text-gray-400' : 'text-gray-900'}`}>
-                                        {category.name}
-                                    </h3>
-                                    <p className={`text-xs mt-1 line-clamp-1 ${appCategory === category.id ? 'text-gray-300' : 'text-gray-500'}`}>
-                                        {category.description}
-                                    </p>
+                                    <span className="text-3xl mb-3 block">{category.emoji}</span>
+                                    <span className="font-bold text-gray-900 block mb-1">{category.name}</span>
+                                    <span className="text-xs text-gray-500 leading-relaxed">{category.description}</span>
                                 </button>
                             ))}
                         </div>
 
-                        {/* 선택된 카테고리 앱 목록 */}
+                        {/* 선택된 카테고리의 수집 앱 목록 */}
                         {currentCategory && (
-                            <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200">
-                                <h4 className="text-sm font-medium text-gray-500 mb-2">
-                                    📱 {currentCategory.name} 수집 앱
-                                </h4>
+                            <div className="mt-6 p-5 bg-white rounded-2xl border border-gray-200">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="text-lg">{currentCategory.emoji}</span>
+                                    <span className="font-bold text-gray-900">{currentCategory.name} 수집 앱</span>
+                                </div>
                                 <div className="flex flex-wrap gap-2">
                                     {currentCategory.apps.map(app => (
-                                        <span
+                                        <div
                                             key={app}
-                                            className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-lg text-sm"
+                                            className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100"
                                         >
-                                            <img
-                                                src={getAppIcon(app)}
-                                                alt={app}
-                                                className="w-4 h-4 rounded"
-                                            />
-                                            {app}
-                                        </span>
+                                            <img src={getAppIcon(app)} alt={app} className="w-5 h-5 rounded" />
+                                            <span className="text-sm text-gray-700">{app}</span>
+                                        </div>
                                     ))}
                                 </div>
-                                {currentCategory.status === 'collecting' && (
-                                    <p className="text-xs text-amber-600 mt-2">
-                                        ⚠️ 이 카테고리는 데이터 수집 중입니다. 참고 메시지가 부족할 수 있어요.
-                                    </p>
-                                )}
                             </div>
                         )}
                     </div>
                 )}
 
                 {/* Step 1: 목적 선택 */}
-                {step === 1 && (
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">
-                            1️⃣ 메시지의 목적을 선택하세요
-                        </h2>
+                {step === 2 && (
+                    <div className="animate-fade-in">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <span className="w-7 h-7 rounded-lg bg-gray-900 text-white text-sm flex items-center justify-center">2</span>
+                                어떤 목적인가요?
+                            </h2>
+                            <span className="text-xs bg-gray-100 px-3 py-1.5 rounded-full text-gray-500">{currentCategory?.emoji} {currentCategory?.name}</span>
+                        </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {purposeOptions.map(option => (
-                                <button
-                                    key={option.id}
-                                    onClick={() => setPurpose(option.id)}
-                                    className={`
-                                        p-5 rounded-2xl text-left transition-all
-                                        ${purpose === option.id
-                                            ? 'bg-gray-900 text-white ring-4 ring-gray-900/20'
-                                            : 'bg-white border border-gray-200 hover:border-gray-300 hover:shadow-md'
-                                        }
-                                    `}
-                                >
-                                    <span className="text-3xl mb-2 block">{option.emoji}</span>
-                                    <h3 className={`font-bold text-lg ${purpose === option.id ? 'text-white' : 'text-gray-900'}`}>
-                                        {option.name}
-                                    </h3>
-                                    <p className={`text-sm mt-1 ${purpose === option.id ? 'text-gray-300' : 'text-gray-500'}`}>
-                                        {option.description}
-                                    </p>
-                                </button>
-                            ))}
+                            {(Object.keys(PURPOSE_CONFIG) as PurposeId[]).map((pId) => {
+                                const config = PURPOSE_CONFIG[pId];
+                                return (
+                                    <button
+                                        key={pId}
+                                        onClick={() => {
+                                            setPurpose(pId);
+                                            setStrategy(null);
+                                        }}
+                                        className={`
+                                            p-5 text-left border-2 rounded-2xl transition-all bg-white
+                                            ${purpose === pId
+                                                ? 'border-gray-900 shadow-lg'
+                                                : 'border-transparent hover:border-gray-200 hover:shadow-md'
+                                            }
+                                        `}
+                                    >
+                                        <div className="text-2xl mb-2">{config.emoji}</div>
+                                        <div className="font-bold text-gray-900 mb-1">{config.name}</div>
+                                        <div className="text-sm text-gray-500">{config.desc}</div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
 
                 {/* Step 2: 전략 선택 */}
-                {step === 2 && (
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">
-                            2️⃣ 마케팅 전략을 선택하세요
-                        </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {(Object.entries(HOOK_TYPE_INFO) as [HookType, typeof HOOK_TYPE_INFO[HookType]][])
-                                .filter(([type]) => type !== 'other')
-                                .map(([type, info]) => (
+                {step === 3 && purpose && (
+                    <div className="animate-fade-in">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <span className="w-7 h-7 rounded-lg bg-gray-900 text-white text-sm flex items-center justify-center">3</span>
+                                어떤 전략으로?
+                            </h2>
+                            <span className="text-xs bg-violet-50 text-violet-600 px-3 py-1.5 rounded-full font-medium">
+                                {PURPOSE_CONFIG[purpose].emoji} {PURPOSE_CONFIG[purpose].name}에 맞는 전략
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {STRATEGIES_BY_PURPOSE[purpose].map((hookId) => {
+                                const info = HOOK_TYPE_INFO[hookId];
+                                if (!info) return null;
+                                return (
                                     <button
-                                        key={type}
-                                        onClick={() => setStrategy(type)}
+                                        key={hookId}
+                                        onClick={() => setStrategy(hookId)}
                                         className={`
-                                            p-4 rounded-xl text-left transition-all
-                                            ${strategy === type
-                                                ? 'bg-gray-900 text-white ring-4 ring-gray-900/20'
-                                                : `${info.color} hover:opacity-80`
+                                            p-5 rounded-2xl text-left transition-all border-2 bg-white
+                                            ${strategy === hookId
+                                                ? 'border-gray-900 shadow-lg'
+                                                : 'border-transparent hover:border-gray-200 hover:shadow-md'
                                             }
                                         `}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-2xl">{info.emoji}</span>
-                                            <div>
-                                                <h3 className={`font-bold ${strategy === type ? 'text-white' : ''}`}>
-                                                    {info.name}
-                                                </h3>
-                                                <p className={`text-xs mt-0.5 ${strategy === type ? 'text-gray-300' : 'opacity-80'}`}>
-                                                    {info.description}
-                                                </p>
-                                            </div>
-                                        </div>
+                                        <span className="text-2xl block mb-2">{info.emoji}</span>
+                                        <h3 className="font-bold text-gray-900 mb-1">{info.name}</h3>
+                                        <p className="text-xs text-gray-500">{info.description}</p>
                                     </button>
-                                ))}
+                                );
+                            })}
                         </div>
 
-                        {/* 참고 메시지 미리보기 */}
                         {strategy && (
-                            <div className="mt-6 p-4 bg-white rounded-xl border border-gray-200">
-                                <h4 className="text-sm font-medium text-gray-500 mb-3">
-                                    📚 {currentCategory?.name || '전체'} - {HOOK_TYPE_INFO[strategy].name} 메시지 참고 예시
-                                </h4>
-                                {isLoadingRef ? (
-                                    <div className="flex items-center gap-2 text-gray-400">
-                                        <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                                        로딩 중...
+                            <>
+                                {/* 전략 설명 */}
+                                <div className="bg-gradient-to-r from-violet-50 to-indigo-50 p-4 rounded-xl border border-violet-100 flex gap-3 items-start mt-6">
+                                    <span className="text-xl">💡</span>
+                                    <div className="text-sm text-gray-700">
+                                        <span className="font-bold text-violet-700">{HOOK_TYPE_INFO[strategy].name}</span> 전략 → {STRATEGY_DESCRIPTIONS[strategy]}
                                     </div>
-                                ) : referenceMessages.length > 0 ? (
-                                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                                        {referenceMessages.slice(0, 5).map(msg => (
-                                            <div
-                                                key={msg.id}
-                                                className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg text-sm"
-                                            >
-                                                <img
-                                                    src={getAppIcon(msg.app_name)}
-                                                    alt={msg.app_name}
-                                                    className="w-6 h-6 rounded"
-                                                />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-gray-900 truncate">{msg.title}</p>
-                                                    <p className="text-gray-500 truncate">{msg.body}</p>
+                                </div>
+
+                                {/* 참고 레퍼런스 */}
+                                <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="text-sm font-bold text-gray-700">📚 참고 레퍼런스</h4>
+                                        {isFallbackRef && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded">⚠️ 타 업종 예시</span>}
+                                    </div>
+                                    {isLoadingRef ? (
+                                        <div className="text-center py-4 text-gray-400 text-sm">불러오는 중...</div>
+                                    ) : referenceMessages.length > 0 ? (
+                                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                                            {referenceMessages.map(msg => (
+                                                <div key={msg.id} className="p-2 bg-gray-50 rounded border border-gray-100 text-xs">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <img src={getAppIcon(msg.app_name)} alt={msg.app_name} className="w-4 h-4 rounded" />
+                                                        <span className="font-bold text-gray-900 truncate">{msg.title}</span>
+                                                    </div>
+                                                    <div className="text-gray-500 truncate">{msg.body}</div>
                                                 </div>
-                                                <span className="text-xs px-2 py-0.5 bg-gray-200 rounded-full flex-shrink-0">
-                                                    {msg.marketing_hook}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-400 text-sm">참고할 수 있는 메시지가 없습니다</p>
-                                )}
-                            </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-4 text-gray-400 text-xs">참고할 메시지가 아직 없어요.</div>
+                                    )}
+                                </div>
+                            </>
                         )}
                     </div>
                 )}
 
                 {/* Step 3: 톤 선택 */}
-                {step === 3 && (
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">
-                            3️⃣ 메시지 톤을 선택하세요
+                {step === 4 && (
+                    <div className="animate-fade-in">
+                        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <span className="w-7 h-7 rounded-lg bg-gray-900 text-white text-sm flex items-center justify-center">4</span>
+                            어떤 말투로?
                         </h2>
-                        <div className="grid grid-cols-2 gap-4">
-                            {TONE_OPTIONS.map(option => (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {TONE_OPTIONS.map(opt => (
                                 <button
-                                    key={option.id}
-                                    onClick={() => setTone(option.id)}
+                                    key={opt.id}
+                                    onClick={() => setTone(opt.id)}
                                     className={`
-                                        p-5 rounded-2xl text-left transition-all
-                                        ${tone === option.id
-                                            ? 'bg-gray-900 text-white ring-4 ring-gray-900/20'
-                                            : 'bg-white border border-gray-200 hover:border-gray-300 hover:shadow-md'
+                                        p-5 rounded-2xl text-left border-2 transition-all bg-white
+                                        ${tone === opt.id
+                                            ? 'border-gray-900 shadow-lg'
+                                            : 'border-transparent hover:border-gray-200 hover:shadow-md'
                                         }
                                     `}
                                 >
-                                    <span className="text-3xl mb-2 block">{option.emoji}</span>
-                                    <h3 className={`font-bold ${tone === option.id ? 'text-white' : 'text-gray-900'}`}>
-                                        {option.name}
-                                    </h3>
-                                    <p className={`text-sm mt-1 ${tone === option.id ? 'text-gray-300' : 'text-gray-500'}`}>
-                                        {option.example}
-                                    </p>
+                                    <div className="text-2xl mb-2">{opt.emoji}</div>
+                                    <div className="font-bold text-gray-900 mb-1">{opt.name}</div>
+                                    <p className="text-sm text-gray-500 mb-3">{opt.desc}</p>
+                                    <div className="text-xs p-2 rounded-lg bg-gray-100 text-gray-600">"{opt.example}"</div>
                                 </button>
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* Step 4: 상세 정보 */}
-                {step === 4 && (
-                    <div className="space-y-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">
-                            4️⃣ 추가 정보를 입력하세요 (선택)
+                {/* Step 4: 상세 입력 */}
+                {step === 5 && purpose && (
+                    <div className="animate-fade-in">
+                        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <span className="w-7 h-7 rounded-lg bg-gray-900 text-white text-sm flex items-center justify-center">5</span>
+                            상세 내용
                         </h2>
 
-                        <div className="bg-white rounded-2xl p-6 border border-gray-200 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    상품/서비스명
-                                </label>
-                                <input
-                                    type="text"
-                                    value={productName}
-                                    onChange={e => setProductName(e.target.value)}
-                                    placeholder={`예: ${dynamicPlaceholder.product}`}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-200 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    핵심 혜택/메시지
-                                </label>
-                                <input
-                                    type="text"
-                                    value={keyBenefit}
-                                    onChange={e => setKeyBenefit(e.target.value)}
-                                    placeholder={`예: ${dynamicPlaceholder.benefit}`}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-200 outline-none transition-all"
-                                />
-                            </div>
+                        {/* 선택 요약 */}
+                        <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-gray-200">
+                            <span className="text-xs px-3 py-1.5 bg-gray-200 rounded-full">{currentCategory?.emoji} {currentCategory?.name}</span>
+                            <span className="text-xs px-3 py-1.5 bg-violet-100 text-violet-700 rounded-full">{PURPOSE_CONFIG[purpose].emoji} {PURPOSE_CONFIG[purpose].name}</span>
+                            {strategy && <span className="text-xs px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full">{HOOK_TYPE_INFO[strategy].emoji} {HOOK_TYPE_INFO[strategy].name}</span>}
+                            <span className="text-xs px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full">{TONE_OPTIONS.find(t => t.id === tone)?.emoji} {TONE_OPTIONS.find(t => t.id === tone)?.name}</span>
                         </div>
 
-                        {/* 선택 요약 */}
-                        <div className="bg-gray-100 rounded-2xl p-4">
-                            <h4 className="text-sm font-medium text-gray-500 mb-3">📋 선택 요약</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {currentCategory && (
-                                    <span className="px-3 py-1 bg-white rounded-full text-sm">
-                                        {currentCategory.emoji} {currentCategory.name}
-                                    </span>
-                                )}
-                                <span className="px-3 py-1 bg-white rounded-full text-sm">
-                                    {purposeOptions.find(p => p.id === purpose)?.emoji}{' '}
-                                    {purposeOptions.find(p => p.id === purpose)?.name}
-                                </span>
-                                {strategy && (
-                                    <span className={`px-3 py-1 rounded-full text-sm ${HOOK_TYPE_INFO[strategy].color}`}>
-                                        {HOOK_TYPE_INFO[strategy].emoji} {HOOK_TYPE_INFO[strategy].name}
-                                    </span>
-                                )}
-                                <span className="px-3 py-1 bg-white rounded-full text-sm">
-                                    {TONE_OPTIONS.find(t => t.id === tone)?.emoji}{' '}
-                                    {TONE_OPTIONS.find(t => t.id === tone)?.name}
-                                </span>
+                        <div className="bg-white rounded-2xl p-6 border border-gray-200">
+                            <div className="space-y-6">
+                                {/* 타겟 + 칩 */}
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-900 mb-2">누구에게 보내나요? (선택)</label>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {(currentGuide?.targetChips || []).map((chip) => (
+                                            <button
+                                                key={chip}
+                                                onClick={() => toggleChip(chip, targetAudience, setTargetAudience)}
+                                                className={`text-xs px-3 py-1.5 rounded-full border transition-all ${targetAudience.includes(chip)
+                                                    ? 'bg-gray-900 border-gray-900 text-white'
+                                                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                                                    }`}
+                                            >
+                                                {targetAudience.includes(chip) ? '✓' : '+'} {chip}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={targetAudience}
+                                        onChange={e => setTargetAudience(e.target.value)}
+                                        placeholder={currentGuide?.targetPlaceholder || ''}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-gray-900 transition-colors"
+                                    />
+                                </div>
+
+                                {/* 상품명 + 칩 */}
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-900 mb-2">무엇을 알리나요?</label>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {(currentGuide?.productChips || []).map((chip) => (
+                                            <button
+                                                key={chip}
+                                                onClick={() => toggleChip(chip, productName, setProductName)}
+                                                className={`text-xs px-3 py-1.5 rounded-full border transition-all ${productName.includes(chip)
+                                                    ? 'bg-gray-900 border-gray-900 text-white'
+                                                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                                                    }`}
+                                            >
+                                                {productName.includes(chip) ? '✓' : '+'} {chip}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={productName}
+                                        onChange={e => setProductName(e.target.value)}
+                                        placeholder={currentGuide?.productPlaceholder || ''}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-gray-900 transition-colors"
+                                    />
+                                </div>
+
+                                {/* 핵심 혜택 + 칩 */}
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-900 mb-2">강조하고 싶은 내용은?</label>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                        {(currentGuide?.benefitChips || []).map((chip) => (
+                                            <button
+                                                key={chip}
+                                                onClick={() => toggleChip(chip, keyBenefit, setKeyBenefit)}
+                                                className={`text-xs px-3 py-1.5 rounded-full border transition-all ${keyBenefit.includes(chip)
+                                                    ? 'bg-gray-900 border-gray-900 text-white'
+                                                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                                                    }`}
+                                            >
+                                                {keyBenefit.includes(chip) ? '✓' : '+'} {chip}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={keyBenefit}
+                                        onChange={e => setKeyBenefit(e.target.value)}
+                                        placeholder={currentGuide?.benefitPlaceholder || ''}
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-gray-900 transition-colors"
+                                    />
+                                </div>
+
+                                {/* 생성 버튼 */}
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={goPrev}
+                                        className="px-6 py-4 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-all"
+                                    >
+                                        ← 이전
+                                    </button>
+                                    <button
+                                        onClick={handleGenerate}
+                                        disabled={isGenerating}
+                                        className="flex-1 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {isGenerating ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                AI가 메시지를 작성 중...
+                                            </>
+                                        ) : (
+                                            '✨ 메시지 생성하기'
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 )}
 
+                {/* 하단 네비게이션 */}
+                {step < 6 && step < 5 && (
+                    <div className="flex justify-end mt-8">
+                        <div className="flex gap-4">
+                            {step > 1 && (
+                                <button
+                                    onClick={goPrev}
+                                    className="px-8 py-4 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all"
+                                >
+                                    ← 이전
+                                </button>
+                            )}
+                            <button
+                                onClick={goNext}
+                                disabled={!canGoNext}
+                                className="px-8 py-4 bg-gray-200 text-gray-700 rounded-2xl font-bold hover:bg-gray-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                다음 →
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Step 5: 결과 */}
-                {step === 5 && (
-                    <div className="space-y-6">
-                        <div className="text-center">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                🎉 AI 추천 메시지
-                            </h2>
-                            <p className="text-gray-500">
-                                마음에 드는 메시지를 선택해 사용하세요
-                            </p>
+                {step === 6 && (
+                    <div className="bg-white rounded-2xl p-6 shadow-xl border border-violet-100">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">🎉 AI가 만든 메시지</h2>
+
+                        {/* 선택 요약 */}
+                        <div className="flex flex-wrap gap-2 mb-8 justify-center">
+                            {currentCategory && <span className="text-xs px-3 py-1.5 bg-gray-200 rounded-full">{currentCategory.emoji} {currentCategory.name}</span>}
+                            {purpose && PURPOSE_CONFIG[purpose] && <span className="text-xs px-3 py-1.5 bg-violet-100 text-violet-700 rounded-full">{PURPOSE_CONFIG[purpose].emoji} {PURPOSE_CONFIG[purpose].name}</span>}
+                            {strategy && HOOK_TYPE_INFO[strategy] && <span className="text-xs px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full">{HOOK_TYPE_INFO[strategy].emoji} {HOOK_TYPE_INFO[strategy].name}</span>}
+                            {tone && <span className="text-xs px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full">{TONE_OPTIONS.find(t => t.id === tone)?.emoji} {TONE_OPTIONS.find(t => t.id === tone)?.name}</span>}
                         </div>
 
                         {error ? (
-                            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
-                                <p className="text-red-600">{error}</p>
-                                <button
-                                    onClick={resetAll}
-                                    className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors"
-                                >
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center mb-4">
+                                <p className="text-red-600 mb-3">{error}</p>
+                                <button onClick={resetAll} className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
                                     다시 시도
                                 </button>
                             </div>
@@ -1017,47 +943,58 @@ export const Generate: React.FC = () => {
                             <div className="space-y-4">
                                 {generatedMessages.map((msg, idx) => {
                                     const hookInfo = HOOK_TYPE_INFO[msg.hookType];
-                                    const styleLabels: Record<string, string> = {
-                                        ultra_short: '초간결',
-                                        direct: '직접 전달',
-                                        emotional: '공감/감성',
-                                        story: '스토리텔링',
-                                        curious: '호기심 유발',
+                                    // 6가지 화법 라벨
+                                    const angleLabels: Record<string, { label: string; emoji: string; color: string }> = {
+                                        direct: { label: '단도직입', emoji: '🎯', color: 'bg-blue-100 text-blue-700' },
+                                        situation: { label: '상황/공감', emoji: '💭', color: 'bg-green-100 text-green-700' },
+                                        question: { label: '의문/호기심', emoji: '❓', color: 'bg-amber-100 text-amber-700' },
+                                        emotional: { label: '감성/스토리', emoji: '💖', color: 'bg-pink-100 text-pink-700' },
+                                        cta: { label: '행동촉구', emoji: '👆', color: 'bg-violet-100 text-violet-700' },
+                                        creative: { label: '무작위 생성', emoji: '🎲', color: 'bg-gradient-to-r from-violet-100 to-pink-100 text-violet-700' },
                                     };
-                                    const styleLabel = (msg as GeneratedMessage & { style?: string }).style
-                                        ? styleLabels[(msg as GeneratedMessage & { style?: string }).style!]
-                                        : null;
+                                    const angleInfo = msg.angle ? angleLabels[msg.angle] : null;
+                                    const isCreativeRandom = msg.angle === 'creative';
+                                    const titleChars = countChars(msg.title);
+                                    const bodyChars = countChars(msg.body);
 
                                     return (
-                                        <div
-                                            key={idx}
-                                            className="bg-white rounded-2xl p-5 border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all cursor-pointer group"
-                                        >
+                                        <div key={idx} className="p-5 bg-gray-50 rounded-xl border border-gray-200 hover:border-violet-300 transition-all group">
                                             <div className="flex items-start gap-4">
-                                                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
-                                                    {hookInfo?.emoji || '📱'}
-                                                </div>
                                                 <div className="flex-1">
-                                                    <h3 className="font-bold text-gray-900 text-lg mb-1">
-                                                        {msg.title}
-                                                    </h3>
-                                                    <p className="text-gray-600">
-                                                        {msg.body}
-                                                    </p>
-                                                    <div className="flex items-center gap-2 mt-3">
-                                                        <span className={`px-2 py-1 rounded-lg text-xs ${hookInfo?.color || 'bg-gray-100'}`}>
-                                                            {hookInfo?.emoji} {hookInfo?.name || msg.hookType}
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="text-xs font-bold px-2 py-1 bg-white rounded border text-gray-500">
+                                                            {idx + 1}
                                                         </span>
-                                                        {styleLabel && (
-                                                            <span className="px-2 py-1 rounded-lg text-xs bg-gray-100 text-gray-600">
-                                                                {styleLabel}
+                                                        <h3 className="font-bold text-gray-900">{msg.title}</h3>
+                                                    </div>
+                                                    <p className="text-gray-600 text-sm mb-2">{msg.body}</p>
+                                                    <div className="text-[11px] text-gray-400 mb-3">
+                                                        제목 {titleChars}자 · 본문 {bodyChars}자
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {isCreativeRandom ? (
+                                                            <span className="px-2 py-1 rounded-lg text-xs bg-gradient-to-r from-violet-100 to-pink-100 text-violet-700">
+                                                                🎲 무작위 생성
                                                             </span>
+                                                        ) : (
+                                                            <>
+                                                                {hookInfo && (
+                                                                    <span className={`px-2 py-1 rounded-lg text-xs ${hookInfo.color}`}>
+                                                                        {hookInfo.emoji} {hookInfo.name}
+                                                                    </span>
+                                                                )}
+                                                                {angleInfo && (
+                                                                    <span className={`px-2 py-1 rounded-lg text-xs ${angleInfo.color}`}>
+                                                                        {angleInfo.emoji} {angleInfo.label}
+                                                                    </span>
+                                                                )}
+                                                            </>
                                                         )}
                                                     </div>
                                                 </div>
                                                 <button
                                                     onClick={() => handleCopy(msg.title, msg.body)}
-                                                    className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
+                                                    className="p-2 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 transition-all"
                                                     title="복사하기"
                                                 >
                                                     📋
@@ -1068,12 +1005,18 @@ export const Generate: React.FC = () => {
                                 })}
                             </div>
                         ) : (
-                            <div className="bg-gray-100 rounded-2xl p-8 text-center">
+                            <div className="bg-gray-100 rounded-xl p-8 text-center">
                                 <p className="text-gray-500">생성된 메시지가 없습니다</p>
                             </div>
                         )}
 
-                        <div className="flex gap-3 justify-center">
+                        <div className="flex gap-3 justify-center mt-6">
+                            <button
+                                onClick={() => setStep(5)}
+                                className="px-6 py-3 bg-white text-gray-700 rounded-xl font-medium border border-gray-300 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                            >
+                                ← 뒤로가기
+                            </button>
                             <button
                                 onClick={resetAll}
                                 className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-300 transition-colors"
@@ -1097,52 +1040,11 @@ export const Generate: React.FC = () => {
                         </div>
                     </div>
                 )}
-
-                {/* 네비게이션 버튼 */}
-                {step < 5 && (
-                    <div className="flex justify-between mt-8">
-                        <button
-                            onClick={prevStep}
-                            disabled={step === 0}
-                            className={`
-                                px-6 py-3 rounded-xl font-medium transition-all
-                                ${step === 0
-                                    ? 'opacity-0 pointer-events-none'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                }
-                            `}
-                        >
-                            ← 이전
-                        </button>
-                        <button
-                            onClick={nextStep}
-                            disabled={!canProceed() || isGenerating}
-                            className={`
-                                px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2
-                                ${canProceed()
-                                    ? 'bg-gray-900 text-white hover:bg-gray-800'
-                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                }
-                            `}
-                        >
-                            {isGenerating ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    생성 중...
-                                </>
-                            ) : step === 4 ? (
-                                '✨ AI 생성하기'
-                            ) : (
-                                '다음 →'
-                            )}
-                        </button>
-                    </div>
-                )}
-            </main>
+            </div>
 
             {/* 복사 토스트 */}
             {showCopyToast && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
                     <div className="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
                         <span className="text-green-400">✓</span>
                         클립보드에 복사되었어요

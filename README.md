@@ -78,7 +78,7 @@
 | **Data Visualization** | Recharts 3.7.0 |
 | **Icons** | Lucide React 0.563.0 |
 | **Backend** | Supabase (PostgreSQL) |
-| **AI** | Google Gemini API |
+| **AI** | OpenAI API (gpt-4o-mini via Supabase Edge Function) |
 | **Deployment** | Vercel |
 
 ---

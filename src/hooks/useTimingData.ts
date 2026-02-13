@@ -203,7 +203,7 @@ export const useTimingData = (options: TimingDataOptions = {}) => {
         }));
     }, [rawData]);
 
-    // 골든아워 계산 (경쟁 밀도가 가장 낮은 시간대 TOP 3)
+    // 골든아워 계산 (발송 밀도가 가장 높은 시간대 TOP 3)
     const { goldenHours, avoidTime } = useMemo(() => {
         if (heatmapData.length === 0) {
             return { goldenHours: [], avoidTime: null };
@@ -211,8 +211,9 @@ export const useTimingData = (options: TimingDataOptions = {}) => {
 
         const avgCount = heatmapData.reduce((sum, cell) => sum + cell.count, 0) / heatmapData.length;
 
-        const sortedByCount = [...heatmapData]
-            .filter(cell => cell.count > 0 || avgCount === 0) // 데이터가 있거나 전체가 0인 경우
+        // 0건 슬롯만 있는 경우는 추천/회피 시간 계산이 불가능
+        const activeSlots = [...heatmapData]
+            .filter(cell => cell.count > 0)
             .map(cell => ({
                 dayOfWeek: cell.dayOfWeek,
                 dayName: DAY_NAMES[cell.dayOfWeek],
@@ -220,14 +221,19 @@ export const useTimingData = (options: TimingDataOptions = {}) => {
                 hourRange: HOUR_RANGES.find(r => r.start === cell.hour)?.label || `${cell.hour}시`,
                 count: cell.count,
                 percentageBelowAvg: avgCount > 0 ? Math.round((1 - cell.count / avgCount) * 100) : 0,
-            }))
-            .sort((a, b) => a.count - b.count);
+            }));
 
-        // 가장 한산한 3개 = 골든아워
-        const golden = sortedByCount.slice(0, 3);
+        if (activeSlots.length === 0) {
+            return { goldenHours: [], avoidTime: null };
+        }
 
-        // 가장 바쁜 1개 = 피해야 할 시간
-        const avoid = sortedByCount.length > 0 ? sortedByCount[sortedByCount.length - 1] : null;
+        // 발송이 가장 집중된 3개 = 골든아워
+        const golden = [...activeSlots]
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 3);
+
+        // 발송이 가장 적은 1개 = 피해야 할 시간 (0건 제외)
+        const avoid = [...activeSlots].sort((a, b) => a.count - b.count)[0] ?? null;
 
         return { goldenHours: golden, avoidTime: avoid };
     }, [heatmapData]);

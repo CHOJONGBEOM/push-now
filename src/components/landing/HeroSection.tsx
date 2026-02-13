@@ -122,8 +122,10 @@ export const HeroSection: React.FC<{ scrollToExamples: () => void }> = ({ scroll
                 </h1>
 
                 <p className="text-lg lg:text-xl text-gray-500 font-medium leading-relaxed mb-12 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                    실시간 인텔리전스로 경쟁사 푸시 전략을 추적하고 분석하세요.<br className="hidden md:block" />
-                    단 하나의 대시보드로 모든 인사이트를 제공합니다.
+                    실시간으로 푸시 데이터를 분석해
+                    <br className="hidden md:block" />
+                    최적의 발송 타이밍과 카피라이팅 전략을 제안합니다.
+
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
