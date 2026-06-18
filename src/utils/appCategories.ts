@@ -89,7 +89,7 @@ export const GENERATE_APP_CATEGORIES: GenerateCategoryInfo[] = [
     name: '콘텐츠/엔터',
     emoji: '🎬',
     description: '웹툰, OTT, 음악, 숏폼',
-    apps: ['카카오페이지', '시리즈', 'TikTok'],
+    apps: ['카카오페이지', '시리즈', 'TikTok', '네이버 웹툰'],
   },
   {
     id: 'game',
@@ -103,7 +103,7 @@ export const GENERATE_APP_CATEGORIES: GenerateCategoryInfo[] = [
     name: '교육/자기계발',
     emoji: '📚',
     description: '어학, 자격증, 온라인 강의',
-    apps: ['듀오링고', 'Cake'],
+    apps: ['듀오링고', 'Cake', '스픽'],
   },
   {
     id: 'finance',
@@ -239,6 +239,8 @@ const APP_CATEGORY_MAP: Record<string, AppCategory> = {
   시리즈: 'content',
   TikTok: 'content',
   틱톡: 'content',
+  네이버웹툰: 'content',
+  '네이버 웹툰': 'content',
   넷플릭스: 'entertainment',
   유튜브: 'entertainment',
   왓챠: 'entertainment',
@@ -255,6 +257,7 @@ const APP_CATEGORY_MAP: Record<string, AppCategory> = {
   // Education
   듀오링고: 'education',
   Cake: 'education',
+  스픽: 'education',
 
   // Health
   굿닥: 'health',
@@ -302,7 +305,7 @@ export const getAppCategory = (appName: string): AppCategory => {
   if (/(토스|뱅크|페이|카드|증권|isp)/.test(lowerName)) return 'finance';
   if (/(페이지|시리즈|tiktok|틱톡|웹툰)/.test(lowerName)) return 'content';
   if (/(pok|포켓몬|game|게임)/.test(lowerName)) return 'game';
-  if (/(듀오링고|cake|어학|강의)/.test(lowerName)) return 'education';
+  if (/(듀오링고|cake|스픽|어학|강의)/.test(lowerName)) return 'education';
   if (/(굿닥|병원|헬스|피트니스|건강)/.test(lowerName)) return 'health';
 
   return 'others';
