@@ -503,7 +503,7 @@ async function callModel(systemPrompt: string, userPrompt: string, temperature: 
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4.1-mini",
+      model: "gpt-4o-mini",
       temperature,
       response_format: { type: "json_object" },
       messages: [
@@ -672,47 +672,7 @@ JSON 객체만 출력:
       result.messages = softenSituationRepetition(result.messages, generationNonce, tone, contextPool);
     }
 
-    const randomStrategyLabel = STRATEGY_LABELS[randomCreativeStrategy] || randomCreativeStrategy;
-    const randomToneLabel = TONE_LABELS[randomCreativeTone] || randomCreativeTone;
-    const randomToneRules = TONE_RULES[randomCreativeTone] || "- 말투: 자연스럽고 완결된 존댓말";
-    const creativeSystemPrompt = `당신은 한국 모바일 앱 푸시 카피라이터다.
-실전 서비스에 바로 쓸 수 있는 자연스러운 문장을 만든다.
-
-## 요청 정보
-- 앱 카테고리: ${categoryLabel}
-- 메시지 목적: ${purposeLabel}
-- 전략: ${randomStrategyLabel}
-- 톤: ${randomToneLabel}
-${targetAudience ? `- 타겟: ${targetAudience}` : "- 타겟: 일반 사용자"}
-${productName ? `- 상품/서비스: ${productName}` : "- 상품/서비스: 일반 상품/서비스"}
-${keyBenefit ? `- 핵심 혜택: ${keyBenefit}` : "- 핵심 혜택: 일반 혜택"}
-
-## 톤 가이드
-${randomToneRules}
-
-## 작성 지시
-- angle은 creative 한 개만 작성
-- 기존 1~5와 문장 시작/전개를 다르게 작성
-- 고정 템플릿 문장 금지
-- 잘린 문장 금지
-
-## 출력 형식
-JSON 객체만 출력:
-{
-  "messages": [
-    {"title":"...", "body":"...", "hook":"...", "hookType":"${randomCreativeStrategy}", "angle":"creative"}
-  ]
-}`;
-    const creativeUserPrompt = `creative 메시지 1개를 생성하세요.
-- 이번 메시지는 랜덤 전략/랜덤 톤으로 작성합니다.
-- 시스템 공지문처럼 밋밋한 표현 금지, 짧은 의외성 1개를 넣어주세요.
-- JSON 외 텍스트는 출력하지 마세요.`;
-    const creativeParsed = await callModel(creativeSystemPrompt, creativeUserPrompt, 1.0);
-    const creativeRaw = extractFirstGeneratedMessage(creativeParsed);
-    const creativeMessage = normalizeMessage(creativeRaw, "creative", randomCreativeStrategy, randomCreativeTone);
-    result.messages = result.messages.map((m) => (m.angle === "creative" ? creativeMessage : m));
-    result.messages = applyHouseStyle(result.messages, tone, randomCreativeTone);
-    result.messages = softenSituationRepetition(result.messages, generationNonce, tone, contextPool);
+    // creative 메시지는 1차 생성 결과 그대로 사용 (별도 API 호출 제거)
 
     if (previousMessages.length > 0) {
       const prevSet = new Set(previousMessages.map((m) => normalizeForCompare(`${m.title} ${m.body}`)));
