@@ -1,0 +1,125 @@
+
+ProcessId CommandLine        
+--------- -----------        
+    27668 "C:\Program Files\n
+          odejs\\node.exe"  "
+          C:\Users\JB\AppData
+          \Roaming\npm\node_m
+          odules\npm\bin\npx-
+          cli.js" -y @upstash
+          /context7-mcp      
+    27324 "node"   "C:\Users\
+          JB\AppData\Local\np
+          m-cache\_npx\eea2bd
+          7412d4593b\node_mod
+          ules\.bin\\..\@upst
+          ash\context7-mcp\di
+          st\index.js"       
+    13020 "C:\Program Files\n
+          odejs\\node.exe"  "
+          C:\Users\JB\AppData
+          \Roaming\npm\node_m
+          odules\npm\bin\npx-
+          cli.js" -y firecraw
+          l-mcp              
+    20956 "node"   "C:\Users\
+          JB\AppData\Local\np
+          m-cache\_npx\12b05d
+          58670d8359\node_mod
+          ules\.bin\\..\firec
+          rawl-mcp\dist\index
+          .js"               
+    16704 "C:\Program Files\n
+          odejs\\node.exe"  "
+          C:\Users\JB\AppData
+          \Roaming\npm\node_m
+          odules\npm\bin\npx-
+          cli.js" -y @modelco
+          ntextprotocol/serve
+          r-github           
+     4252 "node"   "C:\Users\
+          JB\AppData\Local\np
+          m-cache\_npx\3dfbf5
+          a9eea4a1b3\node_mod
+          ules\.bin\\..\@mode
+          lcontextprotocol\se
+          rver-github\dist\in
+          dex.js"            
+    22332 "C:\Program Files\n
+          odejs\\node.exe"  "
+          C:\Users\JB\AppData
+          \Roaming\npm\node_m
+          odules\npm\bin\npx-
+          cli.js" -y @notionh
+          q/notion-mcp-server
+     4924 "node"   "C:\Users\
+          JB\AppData\Local\np
+          m-cache\_npx\2e5266
+          eea15d0ccd\node_mod
+          ules\.bin\\..\@noti
+          onhq\notion-mcp-ser
+          ver\bin\cli.mjs"   
+    24036 "C:\Program Files\n
+          odejs\\node.exe"  "
+          C:\Users\JB\AppData
+          \Roaming\npm\node_m
+          odules\npm\bin\npx-
+          cli.js" -y @modelco
+          ntextprotocol/serve
+          r-sequential-thinki
+          ng                 
+    16836 "node"   "C:\Users\
+          JB\AppData\Local\np
+          m-cache\_npx\de2bd4
+          10102f5eda\node_mod
+          ules\.bin\\..\@mode
+          lcontextprotocol\se
+          rver-sequential-thi
+          nking\dist\index.js
+          "                  
+    11080 "C:\Program Files\n
+          odejs\\node.exe"  "
+          C:\Users\JB\AppData
+          \Roaming\npm\node_m
+          odules\npm\bin\npx-
+          cli.js" -y @supabas
+          e/mcp-server-supaba
+          se@latest --access-
+          token eyJhbGciOiJIU
+          zI1NiIsInR5cCI6IkpX
+          VCJ9.eyJpc3MiOiJzdX
+          BhYmFzZSIsInJlZiI6I
+          m1wcmZud2hmenV5aXZ1
+          eGdlbG9sIiwicm9sZSI
+          6InNlcnZpY2Vfcm9sZS
+          IsImlhdCI6MTc3MDA5O
+          Tk0MCwiZXhwIjoyMDg1
+          Njc1OTQwfQ.YfQl1ybc
+          F6SDnlFE_yd-3-oq4t4
+          DzshQiWfyLilEe5k --
+          project-ref mprfnwh
+          fzuyivuxgelol      
+    15728 "node"   "C:\Users\
+          JB\AppData\Local\np
+          m-cache\_npx\53c479
+          5544aaa350\node_mod
+          ules\.bin\\..\@supa
+          base\mcp-server-sup
+          abase\dist\transpor
+          ts\stdio.js" --acce
+          ss-token eyJhbGciOi
+          JIUzI1NiIsInR5cCI6I
+          kpXVCJ9.eyJpc3MiOiJ
+          zdXBhYmFzZSIsInJlZi
+          I6Im1wcmZud2hmenV5a
+          XZ1eGdlbG9sIiwicm9s
+          ZSI6InNlcnZpY2Vfcm9
+          sZSIsImlhdCI6MTc3MD
+          A5OTk0MCwiZXhwIjoyM
+          Dg1Njc1OTQwfQ.YfQl1
+          ybcF6SDnlFE_yd-3-oq
+          4t4DzshQiWfyLilEe5k
+           --project-ref mprf
+          nwhfzuyivuxgelol   
+
+

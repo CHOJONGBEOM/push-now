@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { Sparkles, Clock, TrendingUp, Rss, FileCheck } from 'lucide-react';
 import { HeroSection } from '../components/landing/HeroSection';
+import { trackEvent } from '../utils/analytics';
 
 const useTypingEffect = (texts: string[], typingSpeed = 50, deletingSpeed = 30, pauseDuration = 2000) => {
   const [displayText, setDisplayText] = useState('');
@@ -292,11 +293,10 @@ const StrategyDistributionDemo: React.FC = () => {
             {triggers.map((t, i) => (
               <span
                 key={t.label}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-500 ${
-                  t.active
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-500 ${t.active
                     ? 'bg-green-100 text-green-700 border border-green-200'
                     : 'bg-gray-100 text-gray-500 border border-gray-200'
-                }`}
+                  }`}
                 style={{
                   opacity: isVisible ? 1 : 0,
                   transform: isVisible ? 'scale(1)' : 'scale(0.8)',
@@ -352,10 +352,9 @@ const FeedDemo: React.FC = () => {
               <button
                 key={day}
                 onClick={() => setActiveDate(day)}
-                className={`relative text-xs py-1.5 rounded-lg transition-all duration-300 ${
-                  isActive ? 'bg-orange-500 text-white font-bold' :
-                  hasData ? 'text-gray-900 hover:bg-orange-50 font-medium' : 'text-gray-300'
-                }`}
+                className={`relative text-xs py-1.5 rounded-lg transition-all duration-300 ${isActive ? 'bg-orange-500 text-white font-bold' :
+                    hasData ? 'text-gray-900 hover:bg-orange-50 font-medium' : 'text-gray-300'
+                  }`}
                 style={{ opacity: isVisible ? 1 : 0, transitionDelay: `${day * 0.02}s` }}
               >
                 {day}
@@ -518,7 +517,7 @@ export const Landing: React.FC = () => {
                   바로 실행 가능한 메시지 초안을 여러 각도로 생성합니다.
                 </p>
                 <AIMessageDemo />
-                <Link to="/generate" className="inline-flex items-center gap-2 text-violet-600 font-bold hover:gap-3 transition-all">
+                <Link to="/generate" onClick={() => trackEvent('cta_clicked', { location: 'generate_section', label: '메시지 생성 체험하기' })} className="inline-flex items-center gap-2 text-violet-600 font-bold hover:gap-3 transition-all">
                   메시지 생성 체험하기 →
                 </Link>
               </div>
@@ -537,7 +536,7 @@ export const Landing: React.FC = () => {
                   경쟁사 발송 패턴을 <span className="font-bold text-gray-900">요일×시간대 히트맵</span>으로 시각화하고,
                   발송 후보 시간을 데이터로 좁혀줍니다.
                 </p>
-                <Link to="/timing" className="inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all">
+                <Link to="/timing" onClick={() => trackEvent('cta_clicked', { location: 'timing_section', label: '타이밍 분석 보기' })} className="inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all">
                   타이밍 분석 보기 →
                 </Link>
               </div>
@@ -555,7 +554,7 @@ export const Landing: React.FC = () => {
                   앱별 전략 비중과 클릭을 유도하는 트리거 패턴을 한눈에 파악할 수 있습니다.
                 </p>
                 <TrendStatsDemo />
-                <Link to="/trends" className="inline-flex items-center gap-2 text-green-600 font-bold hover:gap-3 transition-all">
+                <Link to="/trends" onClick={() => trackEvent('cta_clicked', { location: 'trends_section', label: '트렌드 분석 보기' })} className="inline-flex items-center gap-2 text-green-600 font-bold hover:gap-3 transition-all">
                   트렌드 분석 보기 →
                 </Link>
               </div>
@@ -577,7 +576,7 @@ export const Landing: React.FC = () => {
                   실제 수집된 푸시 메시지를 <span className="font-bold text-gray-900">캘린더 · 카테고리 · 앱</span> 필터로
                   날짜별로 탐색하고, 경쟁사의 전략과 표현을 바로 참고할 수 있습니다.
                 </p>
-                <Link to="/feed" className="inline-flex items-center gap-2 text-orange-600 font-bold hover:gap-3 transition-all">
+                <Link to="/feed" onClick={() => trackEvent('cta_clicked', { location: 'feed_section', label: '메시지 피드 보기' })} className="inline-flex items-center gap-2 text-orange-600 font-bold hover:gap-3 transition-all">
                   메시지 피드 보기 →
                 </Link>
               </div>
@@ -602,7 +601,7 @@ export const Landing: React.FC = () => {
                     </span>
                   ))}
                 </div>
-                <Link to="/review" className="inline-flex items-center gap-2 text-cyan-600 font-bold hover:gap-3 transition-all">
+                <Link to="/review" onClick={() => trackEvent('cta_clicked', { location: 'review_section', label: '메시지 검토하기' })} className="inline-flex items-center gap-2 text-cyan-600 font-bold hover:gap-3 transition-all">
                   메시지 검토하기 →
                 </Link>
               </div>
@@ -616,7 +615,7 @@ export const Landing: React.FC = () => {
               <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
                 감이 아닌 데이터 기반으로 푸시 메시지 성과를 올려보세요.
               </p>
-              <Link to="/generate" className="inline-block bg-white text-gray-900 text-lg font-bold px-12 py-5 rounded-full hover:bg-gray-100 transition-all shadow-xl hover:scale-105">
+              <Link to="/generate" onClick={() => trackEvent('cta_clicked', { location: 'hero_bottom', label: '메시지 작성하기' })} className="inline-block bg-white text-gray-900 text-lg font-bold px-12 py-5 rounded-full hover:bg-gray-100 transition-all shadow-xl hover:scale-105">
                 메시지 작성하기
               </Link>
             </div>

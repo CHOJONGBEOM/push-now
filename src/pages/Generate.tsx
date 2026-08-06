@@ -4,6 +4,7 @@ import { HOOK_TYPE_INFO, TRIGGER_INFO, type HookType, type TriggerType } from '.
 import { supabase } from '../config/supabase';
 import { getAppIcon } from '../utils/appIcons';
 import { GENERATE_APP_CATEGORIES, getGenerateCategoryById } from '../utils/appCategories';
+import { trackEvent } from '../utils/analytics';
 
 // ==========================================
 // 1. 타입 정의
@@ -395,6 +396,13 @@ export const Generate: React.FC = () => {
     const handleGenerate = async () => {
         if (!purpose || !strategy || !tone) return;
 
+        trackEvent('generate_started', {
+            category: appCategory,
+            purpose,
+            strategy,
+            tone,
+        });
+
         setIsGenerating(true);
         setError(null);
 
@@ -430,9 +438,18 @@ export const Generate: React.FC = () => {
 
             if (response.error) throw response.error;
 
-            setGeneratedMessages(response.data.messages || []);
+            const msgs = response.data.messages || [];
+            setGeneratedMessages(msgs);
+            trackEvent('generate_completed', {
+                category: appCategory,
+                purpose,
+                strategy,
+                tone,
+                message_count: msgs.length,
+            });
             setStep(6);
         } catch (err) {
+            trackEvent('generate_failed', { category: appCategory, purpose, strategy });
             setError(err instanceof Error ? err.message : '메시지 생성에 실패했습니다');
             setStep(6);
         } finally {
@@ -461,6 +478,7 @@ export const Generate: React.FC = () => {
         navigator.clipboard.writeText(`${title}\n${body}`);
         setShowCopyToast(true);
         setTimeout(() => setShowCopyToast(false), 2000);
+        trackEvent('message_copied', { category: appCategory, purpose, strategy, tone });
     };
 
     // 리셋
@@ -502,7 +520,10 @@ export const Generate: React.FC = () => {
 
     // 네비게이션
     const goNext = () => {
-        if (step < 5 && canGoNext) setStep(step + 1);
+        if (step < 5 && canGoNext) {
+            trackEvent('generate_step_changed', { from_step: step, to_step: step + 1, category: appCategory, purpose, strategy });
+            setStep(step + 1);
+        }
     };
     const goPrev = () => {
         if (step > 1) setStep(step - 1);
