@@ -39,7 +39,7 @@ const DAY_NAMES = ['월', '화', '수', '목', '금', '토', '일'];
 // DB day: 0=일..6=토 -> UI day: 0=월..6=일
 const DAY_INDEX_MAP: Record<number, number> = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 0: 6 };
 
-const START_HOUR = 6;
+const START_HOUR = 8;
 const END_HOUR = 24; // exclusive
 
 const HOUR_RANGES = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => {

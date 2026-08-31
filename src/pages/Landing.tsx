@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { Sparkles, Clock, TrendingUp, Rss, FileCheck } from 'lucide-react';
@@ -498,105 +498,111 @@ export const Landing: React.FC = () => {
       <div ref={examplesRef} className="bg-gradient-to-b from-white to-gray-50 py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-5xl font-black text-gray-900 mb-6">어떻게 사용하나요?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              마케터가 매일 겪는 핵심 문제를 PushNow가 데이터 기반으로 해결합니다.
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-xs font-bold text-gray-600 mb-4">
+              ✨ 마케터의 일상적 업무 흐름을 그대로 담았습니다
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-black text-gray-900 mb-6">어떻게 활용하나요?</h2>
+            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto break-keep">
+              경쟁사 실시간 알림 탐색부터 골든아워 타이밍 분석, AI 카피 생성까지 데이터 기반으로 연결합니다.
             </p>
           </div>
 
           <div className="space-y-32">
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-3 px-5 py-2 bg-violet-100 text-violet-700 rounded-full font-bold text-sm">
-                  <Sparkles className="w-5 h-5" />
-                  AI 메시지 생성
-                </div>
-                <h3 className="text-4xl font-black text-gray-900">"작성 시간은 줄이고<br />완성도는 올리고"</h3>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  <span className="font-bold text-gray-900">5단계 작성 플로우</span>로 앱 카테고리, 목적, 전략, 톤을 선택하면
-                  바로 실행 가능한 메시지 초안을 여러 각도로 생성합니다.
-                </p>
-                <AIMessageDemo />
-                <Link to="/generate" onClick={() => trackEvent('cta_clicked', { location: 'generate_section', label: '메시지 생성 체험하기' })} className="inline-flex items-center gap-2 text-violet-600 font-bold hover:gap-3 transition-all">
-                  메시지 생성 체험하기 →
-                </Link>
-              </div>
-              <WizardStepsAnimation />
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <AnimatedHeatmap />
-              <div className="space-y-6 order-1 lg:order-2">
-                <div className="inline-flex items-center gap-3 px-5 py-2 bg-blue-100 text-blue-700 rounded-full font-bold text-sm">
-                  <Clock className="w-5 h-5" />
-                  타이밍 분석
-                </div>
-                <h3 className="text-4xl font-black text-gray-900">"언제 보내야 반응이 올라갈까?"</h3>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  경쟁사 발송 패턴을 <span className="font-bold text-gray-900">요일×시간대 히트맵</span>으로 시각화하고,
-                  발송 후보 시간을 데이터로 좁혀줍니다.
-                </p>
-                <Link to="/timing" onClick={() => trackEvent('cta_clicked', { location: 'timing_section', label: '타이밍 분석 보기' })} className="inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all">
-                  타이밍 분석 보기 →
-                </Link>
-              </div>
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-3 px-5 py-2 bg-green-100 text-green-700 rounded-full font-bold text-sm">
-                  <TrendingUp className="w-5 h-5" />
-                  전략 & 트리거 분석
-                </div>
-                <h3 className="text-4xl font-black text-gray-900">"요즘 어떤 전략과<br />심리 트리거가 통할까?"</h3>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  수집된 메시지를 <span className="font-bold text-gray-900">마케팅 전략별·심리 트리거별</span>로 자동 분류하고,
-                  앱별 전략 비중과 클릭을 유도하는 트리거 패턴을 한눈에 파악할 수 있습니다.
-                </p>
-                <TrendStatsDemo />
-                <Link to="/trends" onClick={() => trackEvent('cta_clicked', { location: 'trends_section', label: '트렌드 분석 보기' })} className="inline-flex items-center gap-2 text-green-600 font-bold hover:gap-3 transition-all">
-                  트렌드 분석 보기 →
-                </Link>
-              </div>
-              <StrategyDistributionDemo />
-            </div>
-          </div>
-
-          <div className="space-y-32 mt-32">
-            {/* Feed 섹션 */}
+            {/* 1. Feed 섹션 (탐색) */}
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <FeedDemo />
               <div className="space-y-6 order-1 lg:order-2">
                 <div className="inline-flex items-center gap-3 px-5 py-2 bg-orange-100 text-orange-700 rounded-full font-bold text-sm">
                   <Rss className="w-5 h-5" />
-                  메시지 피드
+                  01. 실시간 메시지 피드
                 </div>
-                <h3 className="text-4xl font-black text-gray-900">"경쟁사는 어떤 메시지를 보내고 있을까?"</h3>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  실제 수집된 푸시 메시지를 <span className="font-bold text-gray-900">캘린더 · 카테고리 · 앱</span> 필터로
-                  날짜별로 탐색하고, 경쟁사의 전략과 표현을 바로 참고할 수 있습니다.
+                <h3 className="text-3xl sm:text-4xl font-black text-gray-900">"경쟁사는 지금<br />어떤 메시지를 보낼까?"</h3>
+                <p className="text-base sm:text-lg text-gray-600 leading-relaxed break-keep">
+                  경쟁사 모니터링하려 폰에 앱 30개 깔아둘 필요 없습니다.
+                  <span className="font-bold text-gray-900"> 캘린더 · 카테고리 · 앱</span> 필터로
+                  실제 발송된 최신 푸시 메시지를 실시간으로 탐색하고 벤치마킹하세요.
                 </p>
                 <Link to="/feed" onClick={() => trackEvent('cta_clicked', { location: 'feed_section', label: '메시지 피드 보기' })} className="inline-flex items-center gap-2 text-orange-600 font-bold hover:gap-3 transition-all">
-                  메시지 피드 보기 →
+                  실시간 피드 둘러보기 →
                 </Link>
               </div>
             </div>
 
-            {/* Review 섹션 */}
+            {/* 2. Timing 섹션 (타이밍 분석) */}
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div className="space-y-6">
+                <div className="inline-flex items-center gap-3 px-5 py-2 bg-blue-100 text-blue-700 rounded-full font-bold text-sm">
+                  <Clock className="w-5 h-5" />
+                  02. 타이밍 & 골든아워
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-black text-gray-900">"언제 보내야 경쟁을 피하고<br />반응이 올라갈까?"</h3>
+                <p className="text-base sm:text-lg text-gray-600 leading-relaxed break-keep">
+                  요일×시간대별 발송 밀도를 <span className="font-bold text-gray-900">히트맵</span>으로 시각화합니다.
+                  경쟁 앱들이 몰리는 피크 시간대를 피하고, 반응이 검증된 최적의 <span className="font-bold text-gray-900">골든아워 TOP 3</span>를 데이터로 제안합니다.
+                </p>
+                <Link to="/timing" onClick={() => trackEvent('cta_clicked', { location: 'timing_section', label: '타이밍 분석 보기' })} className="inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-3 transition-all">
+                  타이밍 히트맵 분석 보기 →
+                </Link>
+              </div>
+              <AnimatedHeatmap />
+            </div>
+
+            {/* 3. Trends 섹션 (트렌드 & 심리 트리거) */}
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <StrategyDistributionDemo />
+              <div className="space-y-6 order-1 lg:order-2">
+                <div className="inline-flex items-center gap-3 px-5 py-2 bg-green-100 text-green-700 rounded-full font-bold text-sm">
+                  <TrendingUp className="w-5 h-5" />
+                  03. 전략 & 심리 트리거
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-black text-gray-900">"요즘 어떤 심리 트리거와<br />카피 전략이 통할까?"</h3>
+                <p className="text-base sm:text-lg text-gray-600 leading-relaxed break-keep">
+                  수집된 메시지를 <span className="font-bold text-gray-900">할인율, 긴급성, FOMO, 호기심</span> 등 심리 트리거별로 자동 태깅·분류하여
+                  업계 전반의 마케팅 훅 분포와 패턴을 한눈에 읽을 수 있습니다.
+                </p>
+                <TrendStatsDemo />
+                <Link to="/trends" onClick={() => trackEvent('cta_clicked', { location: 'trends_section', label: '트렌드 분석 보기' })} className="inline-flex items-center gap-2 text-green-600 font-bold hover:gap-3 transition-all">
+                  트렌드 통계 보기 →
+                </Link>
+              </div>
+            </div>
+
+            {/* 4. Generate 섹션 (AI 카피 작성) */}
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-3 px-5 py-2 bg-violet-100 text-violet-700 rounded-full font-bold text-sm">
+                  <Sparkles className="w-5 h-5" />
+                  04. 실전 기반 AI 카피 생성
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-black text-gray-900">"실제 검증된 레퍼런스로<br />6가지 앵글 카피 도출"</h3>
+                <p className="text-base sm:text-lg text-gray-600 leading-relaxed break-keep">
+                  단순한 텍스트 생성이 아닙니다. 수집된 실전 고성과 푸시 데이터를 프롬프트에 동적 주입하고,
+                  <span className="font-bold text-gray-900"> Jaccard 유사도 가드레일</span>로 진부한 클리셰를 걸러낸 6가지 스타일의 카피를 도출합니다.
+                </p>
+                <AIMessageDemo />
+                <Link to="/generate" onClick={() => trackEvent('cta_clicked', { location: 'generate_section', label: '메시지 생성 체험하기' })} className="inline-flex items-center gap-2 text-violet-600 font-bold hover:gap-3 transition-all">
+                  AI 카피 생성 체험하기 →
+                </Link>
+              </div>
+              <WizardStepsAnimation />
+            </div>
+
+            {/* 5. Review 섹션 (발송 전 검토) */}
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <ReviewDemo />
+              <div className="space-y-6 order-1 lg:order-2">
                 <div className="inline-flex items-center gap-3 px-5 py-2 bg-cyan-100 text-cyan-700 rounded-full font-bold text-sm">
                   <FileCheck className="w-5 h-5" />
-                  발송 전 검토
+                  05. 발송 전 검토
                 </div>
-                <h3 className="text-4xl font-black text-gray-900">"보내기 전에 한번 더 점검"</h3>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  <span className="font-bold text-gray-900">A/B 비교, 이모지 추천, 유사 메시지 검색</span>까지 한 화면에서.
-                  발송 전 톤과 표현을 점검하고 최종 품질을 높여보세요.
+                <h3 className="text-3xl sm:text-4xl font-black text-gray-900">"보내기 전에<br />A/B 비교와 글자 수 점검"</h3>
+                <p className="text-base sm:text-lg text-gray-600 leading-relaxed break-keep">
+                  <span className="font-bold text-gray-900">A/B 시안 비교, 글자 수 체크, 추천 이모지, 유사 메시지 검색</span>까지 한 화면에서.
+                  실제 모바일 알림창 렌더링 뷰로 최종 퀄리티를 점검하세요.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {['A/B 비교 분석', '이모지 추천', '발송 타이밍 힌트', '유사 메시지 검색'].map((tag) => (
-                    <span key={tag} className="px-3 py-1.5 bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-full text-sm font-medium">
+                    <span key={tag} className="px-3 py-1.5 bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-full text-xs font-medium">
                       {tag}
                     </span>
                   ))}
@@ -605,19 +611,31 @@ export const Landing: React.FC = () => {
                   메시지 검토하기 →
                 </Link>
               </div>
-              <ReviewDemo />
             </div>
           </div>
 
+          {/* 하단 포트폴리오 안내 & CTA */}
           <div className="mt-32 text-center">
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-16 text-white">
-              <h3 className="text-4xl font-black mb-6">지금 바로 시작하세요</h3>
-              <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-                감이 아닌 데이터 기반으로 푸시 메시지 성과를 올려보세요.
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-10 sm:p-16 text-white shadow-2xl">
+              <p className="text-xs sm:text-sm font-mono text-indigo-400 uppercase tracking-widest mb-3">Project Overview</p>
+              <h3 className="text-3xl sm:text-4xl font-black mb-4">PushNow의 기술 이야기</h3>
+              <p className="text-base sm:text-lg text-gray-300 mb-8 max-w-2xl mx-auto break-keep">
+                Android 실시간 수집기부터 Supabase DB 트리거 무인화, 3중 가중치 히트맵 알고리즘까지의 1인 개발 이야기를 확인해보세요.
               </p>
-              <Link to="/generate" onClick={() => trackEvent('cta_clicked', { location: 'hero_bottom', label: '메시지 작성하기' })} className="inline-block bg-white text-gray-900 text-lg font-bold px-12 py-5 rounded-full hover:bg-gray-100 transition-all shadow-xl hover:scale-105">
-                메시지 작성하기
-              </Link>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link
+                  to="/feed"
+                  className="w-full sm:w-auto bg-white text-gray-900 text-base font-bold px-8 py-4 rounded-full hover:bg-gray-100 transition-all shadow-lg hover:scale-105"
+                >
+                  실시간 피드 둘러보기
+                </Link>
+                <Link
+                  to="/story"
+                  className="w-full sm:w-auto bg-gray-800 text-white border border-gray-700 text-base font-bold px-8 py-4 rounded-full hover:bg-gray-700 transition-all hover:scale-105"
+                >
+                  개발 스토리 & 아키텍처 보기 →
+                </Link>
+              </div>
             </div>
           </div>
         </div>

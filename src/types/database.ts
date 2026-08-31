@@ -56,6 +56,36 @@ export interface Database {
                     raw_data?: string | null
                 }
             }
+            guestbook: {
+                Row: {
+                    id: string
+                    nickname: string
+                    message: string
+                    pin_hash: string
+                    created_at: string
+                    updated_at: string
+                    deleted_at: string | null
+                }
+                Insert: {
+                    id?: string
+                    nickname: string
+                    message: string
+                    pin_hash: string
+                    created_at?: string
+                    updated_at?: string
+                    deleted_at?: string | null
+                }
+                Update: {
+                    id?: string
+                    nickname?: string
+                    message?: string
+                    pin_hash?: string
+                    created_at?: string
+                    updated_at?: string
+                    deleted_at?: string | null
+                }
+                Relationships: []
+            }
         }
         Views: {
             [_ in never]: never

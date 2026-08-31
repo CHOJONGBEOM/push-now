@@ -10,11 +10,13 @@ export const Navbar: React.FC = () => {
     const [showLoginModal, setShowLoginModal] = useState(false);
 
     const navItems = [
-        { name: '추천', nameEn: 'Generate', path: '/generate' },
         { name: '피드', nameEn: 'Feed', path: '/feed' },
         { name: '타이밍', nameEn: 'Timing', path: '/timing' },
         { name: '트렌드', nameEn: 'Trends', path: '/trends' },
+        { name: 'AI 카피', nameEn: 'Generate', path: '/generate' },
         { name: '검토', nameEn: 'Review', path: '/review' },
+        { name: '스토리', nameEn: 'Story', path: '/story' },
+        { name: '방명록', nameEn: 'Guestbook', path: '/guestbook' },
     ];
 
     const isActive = (path: string) => location.pathname === path;

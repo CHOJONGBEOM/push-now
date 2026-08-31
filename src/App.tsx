@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing';
 import { Dashboard } from './pages/Dashboard';
 import { Generate } from './pages/Generate';
@@ -8,6 +8,8 @@ import { Timing } from './pages/Timing';
 import { Trends } from './pages/Trends';
 import { Review } from './pages/Review';
 import { Contact } from './pages/Contact';
+import { Stroy } from './pages/Stroy';
+import { Guestbook } from './pages/Guestbook';
 import { trackPageView } from './utils/analytics';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginModal } from './components/LoginModal';
@@ -21,6 +23,10 @@ const PAGE_NAMES: Record<string, string> = {
     '/trends': 'Trends',
     '/review': 'Review',
     '/contact': 'Contact',
+    '/story': 'Story',
+    '/stroy': 'Story',
+    '/about': 'Story',
+    '/guestbook': 'Guestbook',
 };
 
 function PageTracker() {
@@ -61,6 +67,10 @@ const App: React.FC = () => {
                     <Route path="/trends" element={<Trends />} />
                     <Route path="/review" element={<Review />} />
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/story" element={<Stroy />} />
+                    <Route path="/stroy" element={<Stroy />} />
+                    <Route path="/about" element={<Navigate to="/story" replace />} />
+                    <Route path="/guestbook" element={<Guestbook />} />
                 </Routes>
             </Router>
         </AuthProvider>

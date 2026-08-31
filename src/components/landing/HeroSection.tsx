@@ -106,33 +106,44 @@ export const HeroSection: React.FC<{ scrollToExamples: () => void }> = ({ scroll
       </div>
 
       <main className="relative z-10 w-full max-w-5xl px-6 lg:px-20 text-center">
-        <h1 className="text-5xl lg:text-7xl font-black text-gray-900 mb-8 leading-[1.1] tracking-tight animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-          푸시메시지,
+        {/* Context & Portfolio Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 border border-indigo-100/80 text-indigo-700 text-xs font-bold mb-6 animate-fade-in-up">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>30대 남성 기기 환경 실시간 수집 · 1인 풀스택 프로젝트</span>
+        </div>
+
+        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-gray-900 mb-6 leading-[1.15] tracking-tight animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          무신사·올리브영·배민은
           <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 animate-gradient-x">
-            더 이상 고민하지 마세요.
+            지금 어떤 푸시를 보낼까?
           </span>
         </h1>
 
-        <p className="text-lg lg:text-xl text-gray-500 font-medium leading-relaxed mb-12 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          실시간 데이터로 경쟁사 푸시 전략을 추적하고 분석해
-          <br className="hidden md:block" />
-          우리 서비스에 맞는 발송 타이밍과 카피를 제안합니다.
+        <p className="text-base sm:text-lg lg:text-xl text-gray-600 font-medium leading-relaxed mb-10 max-w-2xl mx-auto animate-fade-in-up break-keep" style={{ animationDelay: '0.2s' }}>
+          카테고리별 주요 대표 앱들의 마케팅 알림을 실시간 수집·분석하여
+          <br className="hidden sm:block" />
+          경쟁을 피하는 골든아워 타이밍과 고성과 AI 카피를 제안합니다.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <Link
-            to="/generate"
-            className="w-full sm:w-auto bg-gray-900 text-white text-lg font-bold px-8 py-4 rounded-2xl hover:bg-black hover:scale-105 transition-all shadow-xl shadow-gray-900/20 active:scale-95"
+            to="/feed"
+            className="w-full sm:w-auto bg-gray-900 text-white text-base sm:text-lg font-bold px-8 py-4 rounded-2xl hover:bg-black hover:scale-105 transition-all shadow-xl shadow-gray-900/20 active:scale-95"
           >
-            메시지 작성하기
+            실시간 푸시 피드 둘러보기 →
+          </Link>
+          <Link
+            to="/story"
+            className="w-full sm:w-auto text-gray-700 text-base sm:text-lg font-bold px-8 py-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-900 hover:text-gray-900 transition-all shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center gap-2"
+          >
+            개발 스토리 & 아키텍처
           </Link>
           <button
             onClick={scrollToExamples}
-            className="w-full sm:w-auto text-gray-600 text-lg font-bold px-8 py-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-800 hover:text-gray-900 transition-all shadow-sm hover:shadow-lg active:scale-95 flex items-center justify-center gap-2 group"
+            className="text-xs font-bold text-gray-400 hover:text-gray-600 py-2 sm:hidden flex items-center gap-1"
           >
-            예시 보기
-            <ArrowDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+            기능 살펴보기 ↓
           </button>
         </div>
       </main>
